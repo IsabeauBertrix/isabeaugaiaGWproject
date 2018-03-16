@@ -10,12 +10,18 @@ import random as rd
 import pylab as pl
 import matplotlib.pyplot as plt
 from time import time
+
+
+
 def generate_fake_data(n, m, c, sigma, x):
     d = np.zeros(n)
     for i in range (n):
         d[i] = m * x[i] + c + rd.normalvariate(0,sigma)
     
     return d
+
+
+
 
 def straight_line(x, m, c):
     return m*x + c
@@ -30,9 +36,16 @@ sigma = 0.5
 stepsize = (xmax-xmin)/n
 x = np.arange(xmin, xmax, stepsize)
 d = generate_fake_data(n, 3.5, 1.2, sigma, x)
+
+
+
    
 #plt.plot(x,d)
 #plt.show() 
+
+
+
+
 #second step: initiate multinest
 from pymultinest.solve import Solver
 from scipy.special import ndtri  
@@ -52,6 +65,10 @@ class StraightLineModelPyMultiNest(Solver):
     """
 
     # define the prior parameters
+   
+    mmin = 3.
+    mmax = 4.
+   
     cmin = -10.  # lower range on c (the same as the uniform c prior lower bound)
     cmax = 10.   # upper range on c (the same as the uniform c prior upper bound)
 
@@ -85,9 +102,10 @@ class StraightLineModelPyMultiNest(Solver):
         mprime = cube[0]
         cprime = cube[1]
 
-        m = self.mmu + self.msigma*ndtri(mprime)      # convert back to m
+        m = mprime*(self.mmax-self.mmin) + self.mmin      # convert back to m
         c = cprime*(self.cmax-self.cmin) + self.cmin  # convert back to c
-
+    
+        
         return np.array([m, c])
 
     def LogLikelihood(self, cube):
@@ -121,7 +139,7 @@ class StraightLineModelPyMultiNest(Solver):
         
 nlive = 1024 #number of live points
 ndim = 2 #nember of parameters (n and c here)
-tol = 0.5 #stopping criteria, smaller longer but more accurate
+tol = 0.00000005 #stopping criteria, smaller longer but more accurate
 
 # run the algorithm
 t0 = time()
@@ -129,6 +147,12 @@ solution = StraightLineModelPyMultiNest(d, x, straight_line, sigma, n_dims=ndim,
                                         n_live_points=nlive, evidence_tolerance=tol);
 t1 = time()
 print(t1-t0)
+
+
+
+
+
+
 
 logZpymnest = solution.logZ #value of logZ the evidence
 logZerrpymnest = solution.logZerr #estimate of the statistical uncertainty on logZ
@@ -140,24 +164,72 @@ print(solution)
 
 
 mchain = solution.samples[:,0]
-
 hist, bin_edges = np.histogram(mchain)
-area = np.sum(mchain) * ( bin_edges[1] - bin_edges[0] )
+area = len(mchain) * ( bin_edges[1] - bin_edges[0] )
+
 cchain = solution.samples[:,1]
+hist, bin_edges2 = np.histogram(cchain)
+area2 = len(cchain) * ( bin_edges2[1] - bin_edges2[0] )
 from scipy import stats
 kernel = stats.gaussian_kde( mchain )
+kernel2 = stats.gaussian_kde( cchain )
+#print(mchain)
+#print(bin_edges)
+#print( kernel.integrate_box_1d(1,4) )
 
-print( kernel.integrate_box_1d(3,4) )
 
-m_values = np.arange(3.492,3.508,0.000001)
-print(area)
+m_values = np.arange(3.490,3.508,0.000001)
+c_values = np.arange(0.6,1.6, 0.001)
+#print(area)
+#print(len(mchain), len(cchain))
 plt.plot( m_values , kernel(m_values) * area )
 plt.hist(mchain, bins=bin_edges)
-#plt.ylim(0, 1000)
+plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/plot/test.png")
+plt.clf()
+
+plt.plot( c_values, kernel2(c_values) * area2)
+plt.hist(cchain, bins=bin_edges2)
+
+plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/plot/test2.png")
+plt.clf()
+gridx = np.linspace(min(mchain),max(mchain),50)
+gridy = np.linspace(min(cchain),max(cchain),50)
+
+grid, _, _ = np.histogram2d(mchain, cchain, bins=[gridx, gridy])
+left, width = 0.12, 0.55
+bottom, height = 0.12, 0.55
+bottom_h = left_h = left+width+0.02
+ 
+# Set up the geometry of the three plots
+rect_temperature = [left, bottom, width, height] # dimensions of temp plot
+rect_histx = [left, bottom_h, width, 0.25] # dimensions of x-histogram
+rect_histy = [left_h, bottom, 0.25, height] # dimensions of y-histogram
+ 
+# Set up the size of the figure
+fig = plt.figure(1, figsize=(9.5,9))
+
+axTemperature = plt.axes(rect_temperature)
+axTemperature = plt.pcolormesh(gridx, gridy, grid, cmap = 'Greys')
+axTemperature = plt.axis([3.492, 3.506, 0.9, 1.7])
+
+
+axHistx = plt.axes(rect_histx)
+axHisty = plt.axes(rect_histy)
+axHistx.hist(mchain, color = 'blue')
+axHistx.plot( m_values , kernel(m_values) * area )
+axHistx.set_xlim((3.492, 3.506))
+
+
+axHisty.hist(cchain, orientation='horizontal', color = 'blue')
+axHisty.plot(kernel2(c_values) * area2, c_values)
+axHisty.set_ylim((0.9, 1.7))
+
+#remove axis
+nullfmt = plt.NullFormatter()   
+axHistx.xaxis.set_major_formatter(nullfmt)
+axHistx.yaxis.set_major_formatter(nullfmt)
+axHisty.xaxis.set_major_formatter(nullfmt)
+axHisty.yaxis.set_major_formatter(nullfmt)
 plt.show()
-print(bin_edges)
-#plt.hist(cchain)
-#plt.show()
-
-
-
+plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/plot/swag.png")
+plt.clf()
