@@ -72,9 +72,6 @@ class StraightLineModelPyMultiNest(Solver):
     cmin = -10.  # lower range on c (the same as the uniform c prior lower bound)
     cmax = 10.   # upper range on c (the same as the uniform c prior upper bound)
 
-    mmu = 0.     # mean of the Gaussian prior on m
-    msigma = 10. # standard deviation of the Gaussian prior on m
-
     def __init__(self, data, abscissa, modelfunc, sigma, **kwargs):
         # set the data
         self._data = data         # oberserved data
