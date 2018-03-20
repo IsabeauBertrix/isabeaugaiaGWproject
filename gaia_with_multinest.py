@@ -191,4 +191,4 @@ ndim = 7 #number of parameters (n and c here)
 tol = 0.5 #stopping criteria, smaller longer but more accurate
 
 solution = GaiaModelPyMultiNest(changing_star_positions, star_positions, measurement_times, sigma, n_dims=ndim,
-                                        n_live_points=nlive, evidence_tolerance=tol, outputfiles_basename = '/home/isabeau/delta_results/run1');
+                                        n_live_points=nlive, evidence_tolerance=tol, outputfiles_basename = '/home/isabeau/delta_results/run1/output');
