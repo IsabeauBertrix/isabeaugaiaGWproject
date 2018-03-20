@@ -8,7 +8,7 @@ Created on Wed Mar 14 10:27:30 2018
 import numpy as np
 import random as rd
 import pylab as pl
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from time import time
 
 
@@ -179,16 +179,16 @@ m_values = np.arange(3.490,3.508,0.000001)
 c_values = np.arange(0.6,1.6, 0.001)
 #print(area)
 #print(len(mchain), len(cchain))
-plt.plot( m_values , kernel(m_values) * area )
-plt.hist(mchain, bins=bin_edges)
-plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/plot/test.png")
-plt.clf()
+#plt.plot( m_values , kernel(m_values) * area )
+#plt.hist(mchain, bins=bin_edges)
+#plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/plot/test.png")
+#plt.clf()
 
-plt.plot( c_values, kernel2(c_values) * area2)
-plt.hist(cchain, bins=bin_edges2)
+#plt.plot( c_values, kernel2(c_values) * area2)
+#plt.hist(cchain, bins=bin_edges2)
 
-plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/plot/test2.png")
-plt.clf()
+#plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/plot/test2.png")
+#plt.clf()
 gridx = np.linspace(min(mchain),max(mchain),50)
 gridy = np.linspace(min(cchain),max(cchain),50)
 
@@ -203,30 +203,30 @@ rect_histx = [left, bottom_h, width, 0.25] # dimensions of x-histogram
 rect_histy = [left_h, bottom, 0.25, height] # dimensions of y-histogram
  
 # Set up the size of the figure
-fig = plt.figure(1, figsize=(9.5,9))
+#fig = plt.figure(1, figsize=(9.5,9))
 
-axTemperature = plt.axes(rect_temperature)
-axTemperature = plt.pcolormesh(gridx, gridy, grid, cmap = 'Greys')
-axTemperature = plt.axis([3.492, 3.506, 0.9, 1.7])
-
-
-axHistx = plt.axes(rect_histx)
-axHisty = plt.axes(rect_histy)
-axHistx.hist(mchain, color = 'blue')
-axHistx.plot( m_values , kernel(m_values) * area )
-axHistx.set_xlim((3.492, 3.506))
+#axTemperature = plt.axes(rect_temperature)
+#axTemperature = plt.pcolormesh(gridx, gridy, grid, cmap = 'Greys')
+#axTemperature = plt.axis([3.492, 3.506, 0.9, 1.7])
 
 
-axHisty.hist(cchain, orientation='horizontal', color = 'blue')
-axHisty.plot(kernel2(c_values) * area2, c_values)
-axHisty.set_ylim((0.9, 1.7))
+#axHistx = plt.axes(rect_histx)
+#axHisty = plt.axes(rect_histy)
+#axHistx.hist(mchain, color = 'blue')
+#axHistx.plot( m_values , kernel(m_values) * area )
+#axHistx.set_xlim((3.492, 3.506))
+
+
+#axHisty.hist(cchain, orientation='horizontal', color = 'blue')
+#axHisty.plot(kernel2(c_values) * area2, c_values)
+#axHisty.set_ylim((0.9, 1.7))
 
 #remove axis
-nullfmt = plt.NullFormatter()   
-axHistx.xaxis.set_major_formatter(nullfmt)
-axHistx.yaxis.set_major_formatter(nullfmt)
-axHisty.xaxis.set_major_formatter(nullfmt)
-axHisty.yaxis.set_major_formatter(nullfmt)
-plt.show()
-plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/plot/swag.png")
-plt.clf()
+#nullfmt = plt.NullFormatter()   
+#axHistx.xaxis.set_major_formatter(nullfmt)
+#axHistx.yaxis.set_major_formatter(nullfmt)
+#axHisty.xaxis.set_major_formatter(nullfmt)
+#axHisty.yaxis.set_major_formatter(nullfmt)
+#plt.show()
+#"plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/plot/swag.png")
+#plt.clf()
