@@ -8,6 +8,7 @@ Created on Fri Mar 16 17:04:07 2018
 import numpy as np
 import random as rd
 import pylab as pl
+#import matplotlib.pyplot as plt
 
 from time import time
 from collections import namedtuple
@@ -20,13 +21,13 @@ def gen_rand_point():
     
     
 def delta_n ( n , t, GW_par ):
-    epsilon_theta = np.array([np.cos(GW_par.Theta)*np.cos(GW_par.Phi), np.cos(GW_par.Theta)*np.sin(GW_par.Phi) , -np.sin(GW_par.Theta)])
+    epsilon_theta = np.array([GW_par.cosTheta*np.cos(GW_par.Phi), GW_par.cosTheta*np.sin(GW_par.Phi) , -np.sqrt(1-np.power(GW_par.cosTheta,2))])
     epsilon_phi = np.array([-np.sin(GW_par.Phi), np.cos(GW_par.Phi), 0])
-    q = np.array([np.sin(GW_par.Theta) * np.cos(GW_par.Phi), np.sin(GW_par.Theta) * np.sin(GW_par.Phi),np.cos(GW_par.Theta)])
+    q = np.array([np.sqrt(1-np.power(GW_par.cosTheta,2)) * np.cos(GW_par.Phi), np.sqrt(1-np.power(GW_par.cosTheta,2)) * np.sin(GW_par.Phi),GW_par.cosTheta])
     epsilon_plus= np.outer(epsilon_theta, epsilon_theta) - np.outer(epsilon_phi, epsilon_phi)
     epsilon_cross= np.outer(epsilon_theta, epsilon_phi) + np.outer(epsilon_phi,epsilon_theta)
 
-    H = (GW_par.Amplus*np.exp(1j*GW_par.DeltaPhiPlus)*epsilon_plus + GW_par.Amcross*np.exp(1j*GW_par.DeltaPhiCross)*epsilon_cross )*np.exp(1j*GW_par.GWfrequency*t)
+    H = (np.exp(GW_par.logAmplus)*np.exp(1j*GW_par.DeltaPhiPlus)*epsilon_plus + np.exp(GW_par.logAmcross)*np.exp(1j*GW_par.DeltaPhiCross)*epsilon_cross )*np.exp(1j*t*np.exp(GW_par.logGWfrequency))
     
     return np.real((n-q)/(2*(1-np.dot(q,n)))*np.dot(n,np.dot(H,n))-0.5*np.dot(H,n))
 
@@ -47,7 +48,7 @@ def orthographic_projection_north(p):
     else:
         return [None, None]
 
-"""  
+""" 
 def plot_data(changing_star_positions):
     for i in range (number_of_stars): 
         p = star_positions[i] 
@@ -67,21 +68,21 @@ def plot_data(changing_star_positions):
     #plt.clf()
     plt.show()
     
-""" 
-    
-    
+"""    
       
-number_of_stars = 10 #1000
+number_of_stars = 10
 star_positions = [gen_rand_point() for i in range(number_of_stars)]
 
+day = 24 * 60 * 60.
 year = 3660. * 24. * 365.25
 week = 3660. * 24. * 7.
 month = week * 4.
 measurement_times = np.arange(0, 1*month, 1*week)
 
-GW_parameters = namedtuple("GW_parameters", "GWfrequency Amplus Amcross Theta Phi DeltaPhiPlus DeltaPhiCross")
-GW_par = GW_parameters( GWfrequency = 2*np.pi/(3*month), Amplus = 1.0e-13, Amcross = 1.0e-13, Theta = 1.0, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi/2. )
-    
+GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
+GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -13*np.log(10), logAmcross = -13*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi/2. )
+#GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(day)), logAmplus = np.log(0.5), logAmcross = np.log(0.5), cosTheta = 1.0, Phi = 1.0, DeltaPhiPlus = 0 , DeltaPhiCross = 0 )
+        
 changing_star_positions = np.array([ [ delta_n(star_positions[i], t, GW_par) for i in range(number_of_stars)] for t in measurement_times] )
 
 microarcsecond = np.pi/(180*3600*1e6)
@@ -89,6 +90,7 @@ sigma = 1000 * microarcsecond / np.sqrt(1e9/number_of_stars)
 changing_star_positions = changing_star_positions + noise(star_positions, measurement_times, sigma)
 
 #plot_data(changing_star_positions)
+#exit(-1)
 
 from pymultinest.solve import Solver
 from scipy.special import ndtri  
@@ -98,14 +100,14 @@ LN2PI = np.log(2.*np.pi)
 class GaiaModelPyMultiNest(Solver):
 # define the prior parameters
    
-    GWfrequencymin = 2*np.pi/year
-    GWfrequencymax = 2*np.pi/month
-    Amplusmin = 3.0e-14
-    Amplusmax = 3.0e-13
-    Amcrossmin = 3.0e-14
-    Amcrossmax = 3.0e-13
-    Thetamin = 0
-    Thetamax = np.pi
+    logGWfrequencymin = -8
+    logGWfrequencymax = -6
+    logAmplusmin = -14
+    logAmplusmax = -13
+    logAmcrossmin = -14
+    logAmcrossmax = -13
+    cosThetamin = -1
+    cosThetamax = 1
     Phimin = 0
     Phimax = 2*np.pi
     DeltaPhiPlusmin= 0
@@ -139,23 +141,23 @@ class GaiaModelPyMultiNest(Solver):
         """
 
         # extract values
-        GWfrequencyprime = cube[0]
-        Amplusprime = cube[1]
-        Amcrossprime = cube[2]
-        Thetaprime = cube[3]
+        logGWfrequencyprime = cube[0]
+        logAmplusprime = cube[1]
+        logAmcrossprime = cube[2]
+        cosThetaprime = cube[3]
         Phiprime = cube[4]
         DeltaPhiPlusprime = cube[5]
         DeltaPhiCrossprime = cube[6]
         
-        GWfrequency = GWfrequencyprime*(self.GWfrequencymax-self.GWfrequencymin) + self.GWfrequencymin      # convert back to m
-        Amplus = Amplusprime*(self.Amplusmax-self.Amplusmin) + self.Amplusmin 
-        Amcross = Amcrossprime*(self.Amcrossmax-self.Amcrossmin) + self.Amcrossmin 
-        Theta = Thetaprime*(self.Thetamax-self.Thetamin) + self.Thetamin 
+        logGWfrequency = logGWfrequencyprime*(self.logGWfrequencymax-self.logGWfrequencymin) + self.logGWfrequencymin      # convert back to m
+        logAmplus = logAmplusprime*(self.logAmplusmax-self.logAmplusmin) + self.logAmplusmin 
+        logAmcross = logAmcrossprime*(self.logAmcrossmax-self.logAmcrossmin) + self.logAmcrossmin 
+        cosTheta = cosThetaprime*(self.cosThetamax-self.cosThetamin) + self.cosThetamin 
         Phi = Phiprime*(self.Phimax-self.Phimin) + self.Phimin 
         DeltaPhiPlus = DeltaPhiPlusprime*(self.DeltaPhiPlusmax-self.DeltaPhiPlusmin) + self.DeltaPhiPlusmin 
         DeltaPhiCross = DeltaPhiCrossprime*(self.DeltaPhiCrossmax-self.DeltaPhiCrossmin) + self.DeltaPhiCrossmin 
         
-        return np.array([GWfrequency, Amplus, Amcross, Theta, Phi, DeltaPhiPlus, DeltaPhiCross])
+        return np.array([logGWfrequency, logAmplus, logAmcross, cosTheta, Phi, DeltaPhiPlus, DeltaPhiCross])
 
     def LogLikelihood(self, cube):
         """
@@ -170,7 +172,7 @@ class GaiaModelPyMultiNest(Solver):
 
       
        
-        GW_par = GW_parameters( GWfrequency = cube[0], Amplus = cube[1], Amcross = cube[2], Theta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
+        GW_par = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
 
 
         # calculate the model
