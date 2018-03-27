@@ -71,13 +71,13 @@ def plot_data(changing_star_positions):
     
     
       
-number_of_stars = 1000  
+number_of_stars = 10 #1000
 star_positions = [gen_rand_point() for i in range(number_of_stars)]
 
 year = 3660. * 24. * 365.25
 week = 3660. * 24. * 7.
 month = week * 4.
-measurement_times = np.arange(0, 2*year, 2*week)
+measurement_times = np.arange(0, 1*month, 1*week)
 
 GW_parameters = namedtuple("GW_parameters", "GWfrequency Amplus Amcross Theta Phi DeltaPhiPlus DeltaPhiCross")
 GW_par = GW_parameters( GWfrequency = 2*np.pi/(3*month), Amplus = 1.0e-13, Amcross = 1.0e-13, Theta = 1.0, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi/2. )
@@ -85,7 +85,7 @@ GW_par = GW_parameters( GWfrequency = 2*np.pi/(3*month), Amplus = 1.0e-13, Amcro
 changing_star_positions = np.array([ [ delta_n(star_positions[i], t, GW_par) for i in range(number_of_stars)] for t in measurement_times] )
 
 microarcsecond = np.pi/(180*3600*1e6)
-sigma = 100 * microarcsecond / np.sqrt(1e9/number_of_stars)
+sigma = 1000 * microarcsecond / np.sqrt(1e9/number_of_stars)
 changing_star_positions = changing_star_positions + noise(star_positions, measurement_times, sigma)
 
 #plot_data(changing_star_positions)
@@ -186,9 +186,10 @@ class GaiaModelPyMultiNest(Solver):
         return logl
     
 
-nlive = 1024 #number of live points
+nlive = 10 #1024 #number of live points
 ndim = 7 #number of parameters (n and c here)
 tol = 0.5 #stopping criteria, smaller longer but more accurate
+
 
 solution = GaiaModelPyMultiNest(changing_star_positions, star_positions, measurement_times, sigma, n_dims=ndim,
                                         n_live_points=nlive, evidence_tolerance=tol, outputfiles_basename = '/home/isabeau/Documents/Cours/isabeaugaiaGWproject/delta_results/run1');
