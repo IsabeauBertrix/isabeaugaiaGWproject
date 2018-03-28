@@ -58,7 +58,7 @@ def LoadData( filename ):
 
     data = []
 
-    for i in range( len(content) ):
+    for i in range( 10 ): #len(content)
 
         line = content[i]
         line = re.split(', \[|\], \]|\]',line)
@@ -165,8 +165,8 @@ from pymultinest.solve import Solver
 class GaiaModelPyMultiNest(Solver):
 
     # define the prior parameters
-    logGWfrequencymin = -8
-    logGWfrequencymax = -6
+    logGWfrequencymin = -13
+    logGWfrequencymax = -11
     logAmplusmin = -12*np.log(10) - 1.0e-6
     logAmplusmax = -12*np.log(10) + 1.0e-6
     logAmcrossmin = -13*np.log(10) - 1.0e-6
@@ -237,7 +237,8 @@ class GaiaModelPyMultiNest(Solver):
         logl = 0
         for i in range(self._number_of_stars):
             for j in range(len(self._star_positions_times_angles[i][1])):
-                x = self._star_positions_times_angles[i][1][j] - calculate_delta_t(self._star_positions_times_angles[i][0],self._star_positions_times_angles[i][1][j],self._star_positions_times_angles[i][2][j],GW_par)
+                x = self._star_positions_times_angles[i][1][j] 
+                x = x - np.uint64(1.0e11 * calculate_delta_t(self._star_positions_times_angles[i][0],self._star_positions_times_angles[i][1][j],self._star_positions_times_angles[i][2][j],GW_par))
                 logl = logl - (0.5 * x*x / self._sigma_tsq + LN2PI/2. + self._logsigma_t ) 
         return logl      
        
@@ -272,4 +273,4 @@ nlive = 1024 #number of live points
 ndim = 7 #number of parameters
 tol = 0.5 #stopping criteria, smaller longer but more accurate
 
-solution = GaiaModelPyMultiNest(star_positions_times_angles, sigma_t, n_dims=ndim, n_live_points=nlive, evidence_tolerance=tol, outputfiles_basename = '/home/isabeau/Documents/Cours/isabeaugaiaGWproject/delta_results/run1');
+solution = GaiaModelPyMultiNest(star_positions_times_angles, sigma_t, n_dims=ndim, n_live_points=nlive, evidence_tolerance=tol, outputfiles_basename = '/home/isabeau/Documents/Cours/isabeaugaiaGWproject/delta_results/run1', verbose = True);
