@@ -76,20 +76,21 @@ def twoDhist( chain1 , chain2 , minetmax1, minetmax2):
 
 
 # load data from file
-filename = "out/post_equal_weights.dat"
+filename = "delta_results/run1post_equal_weights.dat"
 multinest_data = np.loadtxt(filename)
 npar = len(multinest_data[0])
 chains = [multinest_data[:,i] for i in range(npar - 1)]
-filename2 = "out/minetmax.dat"
-minetmax = np.loadtxt(filename2)
-
+#filename2 = "out/minetmax.dat"
+#minetmax = np.loadtxt(filename2)
+minetmax = [[min(chains[i]), max(chains[i])] for i in range(npar - 1)]
 # loop over params to produce 1D histograms
-#for i in range(npar - 1): 
- #   oneDhist(chains[i], minetmax[i])
+for i in range(npar - 1):  
+    oneDhist(chains[i], minetmax[i])
 
 # double loop over params to produce 2D histograms
+"""
 for i in range(2):
     for j in range(2):
         if j != i:
             twoDhist(chains[i], chains[j], minetmax[i], minetmax[j])
-        
+ """       
