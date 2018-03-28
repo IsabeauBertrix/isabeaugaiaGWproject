@@ -234,7 +234,7 @@ class GaiaModelPyMultiNest(Solver):
        
         #GW_par = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
         
-        logl = - 0.5 * (cube[0] - 7.) * (cube[0] - 7.) / 0.01
+        logl = - 0.5 * np.power( (cube[0] - 8.01)/0.1 , 2. )
         return logl
         
         """
@@ -258,9 +258,9 @@ LN2PI = np.log(2.*np.pi)
 
 hour = 60. * 60.
 day = hour * 24.
-year = day * 365.25
 week = day * 7.
 month = week * 4.
+year = day * 365.25
 
 star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
 
