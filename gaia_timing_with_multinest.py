@@ -234,7 +234,7 @@ class GaiaModelPyMultiNest(Solver):
        
         #GW_par = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
         
-        logl = - 0.5 * np.power( (cube[0] - 8.01)/0.1 , 2. )
+        logl = - 0.5 * np.power( (cube[0] + 7.)/0.1 , 2. )
         return logl
         
         """
