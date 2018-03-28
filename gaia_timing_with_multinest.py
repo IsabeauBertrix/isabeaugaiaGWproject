@@ -58,7 +58,7 @@ def LoadData( filename ):
 
     data = []
 
-    for i in range( 1000 ):  #len(content)
+    for i in range( len(content) ):
 
         line = content[i]
         line = re.split(', \[|\], \]|\]',line)
@@ -232,19 +232,14 @@ class GaiaModelPyMultiNest(Solver):
             float: the log likelihood value.
         """
        
-        #GW_par = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
+        GW_par = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
         
-        logl = - 0.5 * np.power( (cube[0] - 8.01)/0.1 , 2. )
-        return logl
-        
-        """
         logl = 0
         for i in range(self._number_of_stars):
             for j in range(len(self._star_positions_times_angles[i][1])):
                 x = self._star_positions_times_angles[i][1][j] - calculate_delta_t(self._star_positions_times_angles[i][0],self._star_positions_times_angles[i][1][j],self._star_positions_times_angles[i][2][j],GW_par)
                 logl = logl - (0.5 * x*x / self._sigma_tsq + LN2PI/2. + self._logsigma_t ) 
-        return logl
-        """       
+        return logl      
        
     
 
