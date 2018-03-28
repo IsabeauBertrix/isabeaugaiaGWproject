@@ -166,7 +166,7 @@ class GaiaModelPyMultiNest(Solver):
 
     # define the prior parameters
     logGWfrequencymin = -8
-    logGWfrequencymax = -5
+    logGWfrequencymax = -6
     logAmplusmin = -12*np.log(10) - 1.0e-6
     logAmplusmax = -12*np.log(10) + 1.0e-6
     logAmcrossmin = -13*np.log(10) - 1.0e-6
@@ -211,7 +211,7 @@ class GaiaModelPyMultiNest(Solver):
         DeltaPhiPlusprime = cube[5]
         DeltaPhiCrossprime = cube[6]
         
-        logGWfrequency = logGWfrequencyprime*(self.logGWfrequencymax-self.logGWfrequencymin) + self.logGWfrequencymin      # convert back to m
+        logGWfrequency = logGWfrequencyprime*(self.logGWfrequencymax-self.logGWfrequencymin) + self.logGWfrequencymin
         logAmplus = logAmplusprime*(self.logAmplusmax-self.logAmplusmin) + self.logAmplusmin 
         logAmcross = logAmcrossprime*(self.logAmcrossmax-self.logAmcrossmin) + self.logAmcrossmin 
         cosTheta = cosThetaprime*(self.cosThetamax-self.cosThetamin) + self.cosThetamin 
@@ -232,9 +232,9 @@ class GaiaModelPyMultiNest(Solver):
             float: the log likelihood value.
         """
        
-        GW_par = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
+        #GW_par = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
         
-        logl = - 0.5 * (GW_par.logGWfrequency - 7)*(GW_par.logGWfrequency - 7) / 0.01
+        logl = - 0.5 * (cube[0] - 7.) * (cube[0] - 7.) / 0.01
         return logl
         
         """
