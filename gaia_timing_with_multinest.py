@@ -67,7 +67,7 @@ def LoadData( filename ):
         
         SkyPosition = cartesian_coordinate_from_latitude_and_longitude(SkyPosition[0],SkyPosition[1])       
         
-        Times = (np.array( [ np.uint64(a) for a in re.split(', ',line[1]) ] ) - 63100000000000000) * 100
+        Times = np.array( [ np.uint64(a) for a in re.split(', ',line[1]) ] )
 
         ScanAngles = np.array( [ float(a) for a in re.split(', ',line[3]) ] )
 
@@ -101,43 +101,23 @@ def calculate_delta_t(n, t, psi, GW_par):
     # compute the time delay
     return np.dot(dn,x) / w
 
-def inject_fake_gwsignal(star_positions_times_angles, GW_par):
+def calculate_timing_residuals ( star_positions_times_angles , GW_par ):
 
-    # create a copy of the data
-    x = star_positions_times_angles
-   
+    x = []
     for j in range( len( star_positions_times_angles ) ): # loop over stars
-        line = x[j]
-        for i in range( len( line[1] ) ): # loop of measurements of each star
-            delta_t = calculate_delta_t(line[0], line[1][i] * 1.0e-11 , line[2][i], GW_par ) * 1.0e11
-            plusORminus = np.sign( delta_t )
-            delta_t = np.uint64( abs( delta_t ) )
-            if plusORminus < 0:
-                x[j][1][i] = x[j][1][i] - delta_t
-            elif plusORminus > 0:
-                x[j][1][i] = x[j][1][i] + delta_t
-            else:
-                print( "BAD THINGS HAVE HAPPENED" )
-    return x
+        n = star_positions_times_angles[j][0]
+        x.append( [ 1.0e9 * calculate_delta_t(n, 1.0e-9 * star_positions_times_angles[j][1][i], star_positions_times_angles[j][2][i], GW_par) for i in range(len(star_positions_times_angles[j][1])) ] ) # loop of measurements of each star
     
-def inject_fake_noise(star_positions_times_angles, sigma_t):
- 
-    # create a copy of the data
-    x = star_positions_times_angles
+    return np.array( x )
+    
+def inject_fake_noise( timing_residuals , sigma_t ):
    
-    for j in range( len( star_positions_times_angles ) ): # loop over stars
-        line = x[j]
-        for i in range( len( line[1] ) ): # loop of measurements of each star
-            delta_t = np.random.normal(0, sigma_t) * 1.0e11
-            plusORminus = np.sign( delta_t )
-            delta_t = np.uint64( abs( delta_t ) ) 
-            if plusORminus < 0:
-                x[j][1][i] = x[j][1][i] - delta_t
-            elif plusORminus > 0:
-                x[j][1][i] = x[j][1][i] + delta_t
-            else:
-                print( "BAD THINGS HAVE HAPPENED" )
-    return x
+    for j in range( len( timing_residuals ) ): # loop over stars
+        for i in range( len( timing_residuals[j] ) ): # loop of measurements of each star
+            
+            delta_t = np.random.normal(0, sigma_t) # sigma_t is in nanoseconds
+            timing_residuals[j][i] = timing_residuals[j][i] + delta_t
+    return timing_residuals
    
 """ 
 def plot_data(changing_star_positions):
@@ -180,9 +160,10 @@ class GaiaModelPyMultiNest(Solver):
     DeltaPhiCrossmin = np.pi / 2 - 1.0e-6
     DeltaPhiCrossmax = np.pi / 2 + 1.0e-6
 
-    def __init__(self, star_positions_times_angles, sigma_t, **kwargs):
+    def __init__(self, star_positions_times_angles, timing_residuals, sigma_t, **kwargs):
         # set the data
-        self._star_positions_times_angles = star_positions_times_angles 
+        self._star_positions_times_angles = star_positions_times_angles
+        self._timing_residuals = timing_residuals
         self._number_of_stars = len(star_positions_times_angles)
         self._sigma_t = sigma_t      
         self._logsigma_t = np.log(sigma_t) 
@@ -235,11 +216,13 @@ class GaiaModelPyMultiNest(Solver):
         GW_par = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
         
         logl = 0
-        for i in range(self._number_of_stars):
-            for j in range(len(self._star_positions_times_angles[i][1])):
-                x = self._star_positions_times_angles[i][1][j] 
-                x = x - np.uint64(1.0e11 * calculate_delta_t(self._star_positions_times_angles[i][0],self._star_positions_times_angles[i][1][j],self._star_positions_times_angles[i][2][j],GW_par))
+        for i in range(self._number_of_stars): # loop over stars
+            for j in range(len(self._star_positions_times_angles[i][1])): # loop over measurements
+                measured_timing_residual_in_nanoseconds = self._timing_residuals[i][j]
+                modelled_timing_residual_in_nanoseconds = 1.0e9 * calculate_delta_t( self._star_positions_times_angles[i][0] , self._star_positions_times_angles[i][1][j] , self._star_positions_times_angles[i][2][j] , GW_par )
+                x = measured_timing_residual_in_nanoseconds - modelled_timing_residual_in_nanoseconds
                 logl = logl - (0.5 * x*x / self._sigma_tsq + LN2PI/2. + self._logsigma_t ) 
+                
         return logl      
        
     
@@ -263,14 +246,14 @@ star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-
 GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
 
 GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -13*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi/2. )
-        
-star_positions_times_angles = inject_fake_gwsignal(star_positions_times_angles, GW_par)
 
-sigma_t = 1.6e-9 # in seconds
+timing_residuals = calculate_timing_residuals( star_positions_times_angles, GW_par )
+
+sigma_t = 1.6 # nanoseconds
 star_positions_times_angles = inject_fake_noise(star_positions_times_angles, sigma_t)
 
 nlive = 1024 #number of live points
 ndim = 7 #number of parameters
 tol = 0.5 #stopping criteria, smaller longer but more accurate
 
-solution = GaiaModelPyMultiNest(star_positions_times_angles, sigma_t, n_dims=ndim, n_live_points=nlive, evidence_tolerance=tol, outputfiles_basename = '/home/isabeau/Documents/Cours/isabeaugaiaGWproject/delta_results/run1', verbose = True);
+solution = GaiaModelPyMultiNest(star_positions_times_angles, timing_residuals, sigma_t, n_dims=ndim, n_live_points=nlive, evidence_tolerance=tol, outputfiles_basename = '/home/isabeau/Documents/Cours/isabeaugaiaGWproject/delta_results/run1', verbose = True);
