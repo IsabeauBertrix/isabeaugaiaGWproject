@@ -205,7 +205,7 @@ nlive = 10 #1024 #number of live points
 ndim = 7 #number of parameters (n and c here)
 tol = 0.5 #stopping criteria, smaller longer but more accurate
 
-"""
+
 y = []
 x = []
 for i in range(100):
@@ -217,29 +217,30 @@ y = y - max(y)
 plt.plot(x,np.exp(y))
 plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/gwfrequency.png")
 plt.clf()
-"""
+
 y = []
 Y = []
 x = []
+X = []
 for i in range(100):
     cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus + 0.05*(i-50), GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross])
     x.append(GW_par.logAmplus + 0.05*(i-50)) 
-    x.append(GW_par.logAmcross + 0.05*(i-50))
+    X.append(GW_par.logAmcross + 0.05*(i-50))
     y.append(TestLogLikelihood(changing_star_positions, star_positions, measurement_times, sigma, cube))
     cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross + 0.05*(i-50), GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross])
     Y.append(TestLogLikelihood(changing_star_positions, star_positions, measurement_times, sigma, cube))
 Y = Y - max(Y)
 y = y - max(y)
 plt.plot(x,np.exp(y))
-plt.plot(x, np.exp(Y))
+plt.plot(X, np.exp(Y))
 plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/amplitude.png")
 plt.clf()
-"""
+
 y = []
 x = []
 for i in range(100):
-    cube = np.array([GW_par.logGWfrequency , GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta + 0.05*(i-50), GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross])
-    x.append(GW_par.cosTheta + 0.05*(i-50)) 
+    cube = np.array([GW_par.logGWfrequency , GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta + 0.008*(i-50), GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross])
+    x.append(GW_par.cosTheta + 0.008*(i-50)) 
     y.append(TestLogLikelihood(changing_star_positions, star_positions, measurement_times, sigma, cube))
 
 y = y - max(y)
@@ -263,23 +264,25 @@ plt.clf()
 y = []
 Y = []
 x = []
+X = []
 for i in range(100):
     cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus + 0.05*(i-50), GW_par.DeltaPhiCross])
     x.append(GW_par.DeltaPhiPlus + 0.05*(i-50)) 
+    X.append(GW_par.DeltaPhiPlus + 0.05*(i-50)) 
     y.append(TestLogLikelihood(changing_star_positions, star_positions, measurement_times, sigma, cube))
     cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross + 0.05*(i-50)])
     Y.append(TestLogLikelihood(changing_star_positions, star_positions, measurement_times, sigma, cube))
 Y = Y - max(Y)
 y = y - max(y)
 plt.plot(x,np.exp(y))
-plt.plot(x, np.exp(Y))
+plt.plot(X, np.exp(Y))
 plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/deltaphi.png")
 plt.clf()
 
 
 
 
-"""
+
 exit(-1)
 
 solution = GaiaModelPyMultiNest(changing_star_positions, star_positions, measurement_times, sigma, n_dims=ndim,

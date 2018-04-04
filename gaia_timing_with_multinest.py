@@ -271,12 +271,86 @@ sigma_t = 1.6 # nanoseconds
 
 y = []
 x = []
-for i in range(100):
-    cube = np.array([GW_par.logGWfrequency + 0.01*(i-50), GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross])
-    x.append(GW_par.logGWfrequency + 0.00001*(i-50)) 
+
+step_size = 0.0001
+for i in range( 1000 ):
+    cube = np.array( [ GW_par.logGWfrequency + step_size*(i-50), GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x.append( GW_par.logGWfrequency + step_size*(i-50) )
+    y.append( TestLogLikelihood(star_positions_times_angles, 
+timing_residuals, sigma_t, cube) )
+
+y=y-max(y) # this line shifts all the log-likelihood values by a constant so the maximum value is logl=0
+plt.plot(x,np.exp(y)) # we want to plot the likelihood (not log-likelihood) so we need to use np.exp here
+plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/timing_frequency.png")
+plt.clf()
+
+
+y = []
+Y = []
+x = []
+X = []
+step_size = 0.0001
+for i in range( 1000 ):
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus + step_size*(i-50), GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x.append(GW_par.logAmplus + step_size*(i-50)) 
+    X.append(GW_par.logAmcross + step_size*(i-50))
     y.append(TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube))
-plt.plot(x,y)
-plt.show()
+    cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross + step_size*(i-50), GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross])
+    Y.append(TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube))
+Y = Y - max(Y)
+y = y - max(y)
+plt.plot(x,np.exp(y))
+plt.plot(X, np.exp(Y))
+plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/timing_amplitude.png")
+plt.clf()
+
+y = []
+x = []
+
+step_size = 0.0001
+for i in range( 1000 ):
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta + step_size*(i-50), GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x.append( GW_par.cosTheta + step_size*(i-50) )
+    y.append( TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube) )
+
+y=y-max(y) # this line shifts all the log-likelihood values by a constant so the maximum value is logl=0
+plt.plot(x,np.exp(y)) # we want to plot the likelihood (not log-likelihood) so we need to use np.exp here
+plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/timing_cosTheta.png")
+plt.clf()
+
+y = []
+x = []
+
+step_size = 0.0001
+for i in range( 1000 ):
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi + step_size*(i-50), GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x.append( GW_par.Phi + step_size*(i-50) )
+    y.append( TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube) )
+
+y=y-max(y) # this line shifts all the log-likelihood values by a constant so the maximum value is logl=0
+plt.plot(x,np.exp(y)) # we want to plot the likelihood (not log-likelihood) so we need to use np.exp here
+plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/timing_Phi.png")
+plt.clf()
+
+y = []
+Y = []
+x = []
+X = []
+step_size = 0.0001
+for i in range( 1000 ):
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus + step_size*(i-50), GW_par.DeltaPhiCross ] )
+    x.append(GW_par.DeltaPhiPlus + step_size*(i-50)) 
+    X.append(GW_par.DeltaPhiCross + step_size*(i-50))
+    y.append(TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube))
+    cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross + step_size*(i-50)])
+    Y.append(TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube))
+Y = Y - max(Y)
+y = y - max(y)
+plt.plot(x,np.exp(y))
+plt.plot(X, np.exp(Y))
+plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/timing_deltaphi.png")
+plt.clf()
+
 exit(-1)
 
 
