@@ -256,7 +256,7 @@ star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-
 
 GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
 
-GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -13*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi/2. )
+GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1 * np.pi , DeltaPhiCross = 1 * np.pi )
 
 timing_residuals = calculate_timing_residuals( star_positions_times_angles, GW_par )
 
@@ -274,8 +274,8 @@ x = []
 
 step_size = 0.0001
 for i in range( 1000 ):
-    cube = np.array( [ GW_par.logGWfrequency + step_size*(i-50), GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
-    x.append( GW_par.logGWfrequency + step_size*(i-50) )
+    cube = np.array( [ GW_par.logGWfrequency + step_size*(i-500), GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x.append( GW_par.logGWfrequency + step_size*(i-500) )
     y.append( TestLogLikelihood(star_positions_times_angles, 
 timing_residuals, sigma_t, cube) )
 
@@ -291,11 +291,11 @@ x = []
 X = []
 step_size = 0.0001
 for i in range( 1000 ):
-    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus + step_size*(i-50), GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
-    x.append(GW_par.logAmplus + step_size*(i-50)) 
-    X.append(GW_par.logAmcross + step_size*(i-50))
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus + step_size*(i-500), GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x.append(GW_par.logAmplus + step_size*(i-500)) 
+    X.append(GW_par.logAmcross + step_size*(i-500))
     y.append(TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube))
-    cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross + step_size*(i-50), GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross])
+    cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross + step_size*(i-500), GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross])
     Y.append(TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube))
 Y = Y - max(Y)
 y = y - max(y)
@@ -309,8 +309,8 @@ x = []
 
 step_size = 0.0001
 for i in range( 1000 ):
-    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta + step_size*(i-50), GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
-    x.append( GW_par.cosTheta + step_size*(i-50) )
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta + step_size*(i-500), GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x.append( GW_par.cosTheta + step_size*(i-500) )
     y.append( TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube) )
 
 y=y-max(y) # this line shifts all the log-likelihood values by a constant so the maximum value is logl=0
@@ -323,8 +323,8 @@ x = []
 
 step_size = 0.0001
 for i in range( 1000 ):
-    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi + step_size*(i-50), GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
-    x.append( GW_par.Phi + step_size*(i-50) )
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi + step_size*(i-500), GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x.append( GW_par.Phi + step_size*(i-500) )
     y.append( TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube) )
 
 y=y-max(y) # this line shifts all the log-likelihood values by a constant so the maximum value is logl=0
@@ -338,11 +338,11 @@ x = []
 X = []
 step_size = 0.0001
 for i in range( 1000 ):
-    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus + step_size*(i-50), GW_par.DeltaPhiCross ] )
-    x.append(GW_par.DeltaPhiPlus + step_size*(i-50)) 
-    X.append(GW_par.DeltaPhiCross + step_size*(i-50))
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus + step_size*(i-500), GW_par.DeltaPhiCross ] )
+    x.append(GW_par.DeltaPhiPlus + step_size*(i-500)) 
+    X.append(GW_par.DeltaPhiCross + step_size*(i-500))
     y.append(TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube))
-    cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross + step_size*(i-50)])
+    cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross + step_size*(i-500)])
     Y.append(TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube))
 Y = Y - max(Y)
 y = y - max(y)
