@@ -9,7 +9,7 @@ import numpy as np
 import os
 import re
 
-def Separator( filename ):
+def LoadTimes( filename ):
       
     if ( os.path.isfile( filename ) == False ):
         print "Error: file does not exist"
@@ -25,12 +25,32 @@ def Separator( filename ):
         
         Time = np.array( [ np.uint64(a) for a in re.split(', ',line[1]) ] )
         Times.append([Time])
+      
     return Times
 
-
+def SplitTimes( Times ):
+    return 1
 
  
-Times = Separator( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
+Times = LoadTimes( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
+Split = SplitTimes( Times )
+
+
+# Times [ [.........] , [...........] , [...........]         ] 
+# Split [ 
+#          [ [.....] , [.....] ] , 
+#          [ [.....] , [.....] ] , 
+#          [ [.....] , [.....] ] ,
+#          1000 lines
+#       ]
+
+# loop over stars
+#   loop over times in telescope 1
+#     loop over times in telescope 2
+#       if pair of times is less than two hours
+#          then save pair to file
+
+
 #print(Times[5][0][0])
 #print(Times[5][0][1])
 #print(Times[5][0][2])
