@@ -28,7 +28,6 @@ def LoadTimes( filename ):
     return Times
 
 def SplitTimes( Times ):
-    for i in an
     return 1
 
  
