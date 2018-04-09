@@ -4,7 +4,7 @@ Created on Fri Mar 16 17:04:07 2018
 
 @author: isabeau
 """
-working_directory = '/home/isabeau/Documents/Cours/'
+working_directory = '/home/isabeau/isabeaugaiaGWproject'
 
 import numpy as np
 import re
@@ -57,7 +57,7 @@ def LoadData( filename ):
 
     data = []
 
-    for i in range( 10 ): #len(content)
+    for i in range( len(content )):
 
         line = content[i]
         line = re.split(', \[|\], \]|\]',line)
@@ -268,11 +268,11 @@ sigma_t = 1.6 # nanoseconds
 
 
 
-numb = 100
+numb = 1000
 y = np.zeros(numb)
 x = np.zeros(numb)
 
-step_size = 0.0001
+step_size = 0.001
 for i in range( numb ):
     cube = np.array( [ GW_par.logGWfrequency + step_size*(i-0.5*numb), GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
     x[i] = GW_par.logGWfrequency + step_size*(i-0.5*numb)
@@ -288,7 +288,7 @@ y = np.zeros(numb)
 x = np.zeros(numb)
 Y = np.zeros(numb)
 X = np.zeros(numb)
-step_size = 0.01
+step_size = 0.1
 for i in range( numb ):
     cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus + step_size*(i-0.5*numb), GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
     x[i] = GW_par.logAmplus + step_size*(i-0.5*numb)
@@ -309,7 +309,7 @@ plt.clf()
 
 y = np.zeros(numb)
 x = np.zeros(numb)
-step_size = 0.001
+step_size = 0.01
 for i in range( numb ):
     cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta + step_size*(i-0.5*numb), GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
     x[i] = GW_par.cosTheta + step_size*(i-0.5*numb) 
@@ -323,7 +323,7 @@ plt.clf()
 
 y = np.zeros(numb)
 x = np.zeros(numb)
-step_size = 0.001
+step_size = 0.01
 for i in range( numb ):
     cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi + step_size*(i-0.5*numb), GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
     x[i] = GW_par.Phi + step_size*(i-0.5*numb) 
@@ -339,7 +339,7 @@ y = np.zeros(numb)
 x = np.zeros(numb)
 Y = np.zeros(numb)
 X = np.zeros(numb)
-step_size = 0.01
+step_size = 0.1
 for i in range( numb ):
     cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus + step_size*(i-0.5*numb), GW_par.DeltaPhiCross ] )
     x[i] = GW_par.DeltaPhiPlus + step_size*(i-0.5*numb)
