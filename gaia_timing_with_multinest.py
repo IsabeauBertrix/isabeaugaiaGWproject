@@ -4,6 +4,7 @@ Created on Fri Mar 16 17:04:07 2018
 
 @author: isabeau
 """
+working_directory = '/home/isabeau/Documents/Cours/'
 
 import numpy as np
 import re
@@ -25,10 +26,9 @@ def delta_n ( n , t, GW_par ):
     epsilon_cross= np.outer(epsilon_theta, epsilon_phi) + np.outer(epsilon_phi,epsilon_theta)
 
     # metric perturbation
-    H = (np.exp(GW_par.logAmplus)*np.exp(1j*GW_par.DeltaPhiPlus)*epsilon_plus + np.exp(GW_par.logAmcross)*np.exp(1j*GW_par.DeltaPhiCross)*epsilon_cross )*np.exp(1j*t*np.exp(GW_par.logGWfrequency))
-    
+    H = np.exp(GW_par.logAmplus) * np.cos(GW_par.DeltaPhiPlus + t*np.exp(GW_par.logGWfrequency)) * epsilon_plus + np.exp(GW_par.logAmcross) * np.cos(GW_par.DeltaPhiCross + t*np.exp(GW_par.logGWfrequency))*epsilon_cross
     # compute astrometric deflection, delta_n
-    return np.real((n-q)/(2*(1-np.dot(q,n)))*np.dot(n,np.dot(H,n))-0.5*np.dot(H,n))
+    return (n-q)/(2*(1-np.dot(q,n)))*np.dot(n,np.dot(H,n))-0.5*np.dot(H,n)
 
 def orthographic_projection_north(p):
     if p[2]>0:
@@ -268,87 +268,90 @@ sigma_t = 1.6 # nanoseconds
 
 
 
-
-y = []
-x = []
+numb = 100
+y = np.zeros(numb)
+x = np.zeros(numb)
 
 step_size = 0.0001
-for i in range( 1000 ):
-    cube = np.array( [ GW_par.logGWfrequency + step_size*(i-500), GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
-    x.append( GW_par.logGWfrequency + step_size*(i-500) )
-    y.append( TestLogLikelihood(star_positions_times_angles, 
-timing_residuals, sigma_t, cube) )
+for i in range( numb ):
+    cube = np.array( [ GW_par.logGWfrequency + step_size*(i-0.5*numb), GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x[i] = GW_par.logGWfrequency + step_size*(i-0.5*numb)
+    y[i] = TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube) 
 
 y=y-max(y) # this line shifts all the log-likelihood values by a constant so the maximum value is logl=0
 plt.plot(x,np.exp(y)) # we want to plot the likelihood (not log-likelihood) so we need to use np.exp here
-plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/timing_frequency.png")
+plt.savefig(working_directory+"isabeaugaiaGWproject/timing_frequency.png")
 plt.clf()
 
 
-y = []
-Y = []
-x = []
-X = []
-step_size = 0.0001
-for i in range( 1000 ):
-    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus + step_size*(i-500), GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
-    x.append(GW_par.logAmplus + step_size*(i-500)) 
-    X.append(GW_par.logAmcross + step_size*(i-500))
-    y.append(TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube))
-    cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross + step_size*(i-500), GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross])
-    Y.append(TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube))
+y = np.zeros(numb)
+x = np.zeros(numb)
+Y = np.zeros(numb)
+X = np.zeros(numb)
+step_size = 0.01
+for i in range( numb ):
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus + step_size*(i-0.5*numb), GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x[i] = GW_par.logAmplus + step_size*(i-0.5*numb)
+    y[i] = TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube)
+
+    cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross + step_size*(i-0.5*numb), GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross])
+    X[i] = GW_par.logAmcross + step_size*(i-0.5*numb)
+    Y[i] = TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube)
 Y = Y - max(Y)
 y = y - max(y)
 plt.plot(x,np.exp(y))
 plt.plot(X, np.exp(Y))
-plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/timing_amplitude.png")
+plt.savefig(working_directory+"isabeaugaiaGWproject/timing_amplitude.png")
 plt.clf()
 
-y = []
-x = []
 
-step_size = 0.0001
-for i in range( 1000 ):
-    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta + step_size*(i-500), GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
-    x.append( GW_par.cosTheta + step_size*(i-500) )
-    y.append( TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube) )
+
+
+y = np.zeros(numb)
+x = np.zeros(numb)
+step_size = 0.001
+for i in range( numb ):
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta + step_size*(i-0.5*numb), GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x[i] = GW_par.cosTheta + step_size*(i-0.5*numb) 
+    y[i] = TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube) 
 
 y=y-max(y) # this line shifts all the log-likelihood values by a constant so the maximum value is logl=0
 plt.plot(x,np.exp(y)) # we want to plot the likelihood (not log-likelihood) so we need to use np.exp here
-plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/timing_cosTheta.png")
+plt.savefig(working_directory+"isabeaugaiaGWproject/timing_cosTheta.png")
 plt.clf()
 
-y = []
-x = []
 
-step_size = 0.0001
-for i in range( 1000 ):
-    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi + step_size*(i-500), GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
-    x.append( GW_par.Phi + step_size*(i-500) )
-    y.append( TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube) )
+y = np.zeros(numb)
+x = np.zeros(numb)
+step_size = 0.001
+for i in range( numb ):
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi + step_size*(i-0.5*numb), GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x[i] = GW_par.Phi + step_size*(i-0.5*numb) 
+    y[i] = TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube) 
 
 y=y-max(y) # this line shifts all the log-likelihood values by a constant so the maximum value is logl=0
 plt.plot(x,np.exp(y)) # we want to plot the likelihood (not log-likelihood) so we need to use np.exp here
-plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/timing_Phi.png")
+plt.savefig(working_directory+"isabeaugaiaGWproject/timing_Phi.png")
 plt.clf()
 
-y = []
-Y = []
-x = []
-X = []
-step_size = 0.0001
-for i in range( 1000 ):
-    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus + step_size*(i-500), GW_par.DeltaPhiCross ] )
-    x.append(GW_par.DeltaPhiPlus + step_size*(i-500)) 
-    X.append(GW_par.DeltaPhiCross + step_size*(i-500))
-    y.append(TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube))
-    cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross + step_size*(i-500)])
-    Y.append(TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube))
+
+y = np.zeros(numb)
+x = np.zeros(numb)
+Y = np.zeros(numb)
+X = np.zeros(numb)
+step_size = 0.01
+for i in range( numb ):
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus + step_size*(i-0.5*numb), GW_par.DeltaPhiCross ] )
+    x[i] = GW_par.DeltaPhiPlus + step_size*(i-0.5*numb)
+    X[i] = GW_par.DeltaPhiCross + step_size*(i-0.5*numb)
+    y[i] = TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube)
+    cube = np.array([GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross + step_size*(i-0.5*numb)])
+    Y[i] = TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube)
 Y = Y - max(Y)
 y = y - max(y)
 plt.plot(x,np.exp(y))
 plt.plot(X, np.exp(Y))
-plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/timing_deltaphi.png")
+plt.savefig(working_directory+"isabeaugaiaGWproject/timing_deltaphi.png")
 plt.clf()
 
 exit(-1)
