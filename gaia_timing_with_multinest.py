@@ -4,13 +4,16 @@ Created on Fri Mar 16 17:04:07 2018
 
 @author: isabeau
 """
-working_directory = '/home/isabeau/isabeaugaiaGWproject'
+working_directory = '/home/isabeau/Documents/Cours/isabeaugaiaGWproject/'
 
 import numpy as np
 import re
 import os
 import matplotlib.pyplot as plt
 from collections import namedtuple
+
+
+GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
     
 def delta_n ( n , t, GW_par ):
  
@@ -57,7 +60,7 @@ def LoadData( filename ):
 
     data = []
 
-    for i in range( len(content )):
+    for i in range( len( content ) ):
 
         line = content[i]
         line = re.split(', \[|\], \]|\]',line)
@@ -99,7 +102,9 @@ def calculate_delta_t(n, t, psi, GW_par):
     
     # compute the time delay
     return np.dot(dn,x) / w
-
+    #IT IS IN SECONDS
+    
+    
 def calculate_timing_residuals ( star_positions_times_angles , GW_par ):
 
     x = []
@@ -108,6 +113,125 @@ def calculate_timing_residuals ( star_positions_times_angles , GW_par ):
         x.append( [ 1.0e9 * calculate_delta_t(n, 1.0e-9 * star_positions_times_angles[j][1][i], star_positions_times_angles[j][2][i], GW_par) for i in range(len(star_positions_times_angles[j][1])) ] ) # loop of measurements of each star
     
     return np.array( x )
+
+def derivative1( n , t , psi, GW_par, param_index, scale ):
+    deltas = [np.power( 10 , -10.5), np.power(10, -5.75) ,np.power(10, -5.75), np.power(10 , -6.25), np.power(10 , -6.25), np.power( 10 , -2.5), np.power(10 , -2.5)]
+    
+    if param_index == 0:
+        GW = GW_par._asdict()
+        GW['logGWfrequency'] = GW['logGWfrequency'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW )
+        GW = GW_par._asdict()
+        GW['logGWfrequency'] = GW['logGWfrequency'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW)
+        return answer / (2 * deltas[param_index] * scale) 
+    elif param_index == 1:
+        GW = GW_par._asdict()
+        GW['logAmplus'] = GW['logAmplus'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW )
+        GW = GW_par._asdict()
+        GW['logAmplus'] = GW['logAmplus'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW)
+        return answer / (2 * deltas[param_index] * scale ) 
+    elif param_index == 2:
+        GW = GW_par._asdict()
+        GW['logAmcross'] = GW['logAmcross'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW )
+        GW = GW_par._asdict()
+        GW['logAmcross'] = GW['logAmcross'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW)
+        return answer / (2 * deltas[param_index] * scale ) 
+    elif param_index == 3:
+        GW = GW_par._asdict()
+        GW['cosTheta'] = GW['cosTheta'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW )
+        GW = GW_par._asdict()
+        GW['cosTheta'] = GW['cosTheta'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW)
+        return answer / (2 * deltas[param_index] * scale) 
+    elif param_index == 4:
+        GW = GW_par._asdict()
+        GW['Phi'] = GW['Phi'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW )
+        GW = GW_par._asdict()
+        GW['Phi'] = GW['Phi'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW)
+        return answer / (2 * deltas[param_index] * scale ) 
+    elif param_index == 5:
+        GW = GW_par._asdict()
+        GW['DeltaPhiPlus'] = GW['DeltaPhiPlus'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW )
+        GW = GW_par._asdict()
+        GW['DeltaPhiPlus'] = GW['DeltaPhiPlus'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW)
+        return answer / (2 * deltas[param_index] * scale ) 
+    elif param_index == 6:
+        GW = GW_par._asdict()
+        GW['DeltaPhiCross'] = GW['DeltaPhiCross'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW )
+        GW = GW_par._asdict()
+        GW['DeltaPhiCross'] = GW['DeltaPhiCross'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW)
+        return answer / (2 * deltas[param_index] * scale) 
+    else:
+        print('error')
+        return(-1)
+        
+def test_derivatives(GW_par) :
+    scale_values = np.power( 10 , np.linspace(-2 , 2 , 100) )
+    
+    for i in range(7):
+        y = [derivative1( np.array([0 , 0 , 1]), 3600 * 24 * 7 * 1.0e9 , np.pi/3. , GW_par , i , s) for s in scale_values] 
+        ysq = [ Y * Y for Y in y] 
+        plt.plot( np.log10(scale_values ) , np.log10( ysq )  )
+        plt.show()
+        plt.clf()
+
+    
+def matrix_derivative(n , t , psi, GW_par):
+    v = [derivative1( np.array([0 , 0 , 1]), 3600 * 24 * 7 * 1.0e9 , np.pi/3. , GW_par, param_index, 1.0 ) for param_index in range(7)]
+    return np.outer( v , v )
+      
+    
+def fisher_matrix (star_positions_times_angles , GW_par, sigma_t):
+    number_of_stars = len(star_positions_times_angles)
+    Sigma = np.zeros(( 7 , 7 ))
+    for i in range( number_of_stars):
+        for j in range( len(star_positions_times_angles[i][1])): #len of the times
+            M = matrix_derivative( star_positions_times_angles[i][0], star_positions_times_angles[i][1][j], star_positions_times_angles[i][2][j], GW_par)
+            Sigma = Sigma + M / (sigma_t * sigma_t )
+    return(Sigma)
+    
+GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*28*24*3600.)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1 * np.pi , DeltaPhiCross = 1 * np.pi )          
+test_derivatives(GW_par)
+star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
+sigma_t = 1.0e-9
+
+from numpy import linalg as LA
+
+Sigma = fisher_matrix (star_positions_times_angles , GW_par, sigma_t)    
+ 
+w,v = LA.eig( Sigma )
+
+invSigma = LA.inv( Sigma )
+
+print( Sigma , w,v,invSigma)
+         
+exit(-1)          
     
 def inject_fake_noise( timing_residuals , sigma_t ):
    
@@ -254,7 +378,7 @@ year = day * 365.25
 
 star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
 
-GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
+
 
 GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1 * np.pi , DeltaPhiCross = 1 * np.pi )
 
@@ -283,7 +407,7 @@ plt.plot(x,np.exp(y)) # we want to plot the likelihood (not log-likelihood) so w
 plt.savefig(working_directory+"isabeaugaiaGWproject/timing_frequency.png")
 plt.clf()
 
-
+"""
 y = np.zeros(numb)
 x = np.zeros(numb)
 Y = np.zeros(numb)
@@ -353,7 +477,7 @@ plt.plot(x,np.exp(y))
 plt.plot(X, np.exp(Y))
 plt.savefig(working_directory+"isabeaugaiaGWproject/timing_deltaphi.png")
 plt.clf()
-
+"""
 exit(-1)
 
 
