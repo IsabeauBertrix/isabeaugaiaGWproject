@@ -648,7 +648,7 @@ if reponse in ['1', '2']:
             error = np.sqrt(np.diag(invSigma2))
     if reponse == '2':
         if reponse2 == 'a':
-            print('People assume that time is a strict progression of cause to effect, but actually from a non-linear, non-subjective viewpoint, it s more like a big ball of wibbly wobbly... time-y wimey... stuff')
+            print('Well...You know, people assume that time is a strict progression of cause to effect, but actually from a non-linear, non-subjective viewpoint, it s more like a big ball of wibbly wobbly... time-y wimey... stuff')
             error = np.sqrt(np.diag(invSigma3))
         if reponse2 == 'b':
             print('Congrats, all the Universe, will explose')
