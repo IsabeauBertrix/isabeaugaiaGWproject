@@ -641,23 +641,46 @@ if reponse in ['1', '2']:
     reponse2 = raw_input("Enter a or b:")
     if reponse == '1':
         if reponse2 == 'a':
+            reponse3 = raw_input("Oh wait, do you also want to see the plots? [yes/no]:")
+            if reponse3 == 'yes':
+                test_derivatives1(GW_par)
+            if reponse3 == 'no':
+                print('well ok... ʕ•͡-•ʔ ')
             print('( ͡° ͜ʖ ͡°)')
             error = np.sqrt(np.diag(invSigma1))
         if reponse2 == 'b':
+            reponse3 = raw_input("Oh wait, do you also want to see the plots? [yes/no]:")
+            if reponse3 == 'yes':
+                test_derivatives2(GW_par, 1.0e16)
+            if reponse3 == 'no':
+                print('well ok... ʕ•͡-•ʔ ')
             print('(ง ͡ʘ ͜ʖ ͡ʘ)ง')
             error = np.sqrt(np.diag(invSigma2))
     if reponse == '2':
         if reponse2 == 'a':
+            reponse3 = raw_input("Oh wait, do you also want to see the plots? [yes/no]:")
+            if reponse3 == 'yes':
+                test_derivatives3(GW_par)
+            if reponse3 == 'no':
+                print('well ok... ʕ•͡-•ʔ ')
             print('Well...You know, people assume that time is a strict progression of cause to effect, but actually from a non-linear, non-subjective viewpoint, it s more like a big ball of wibbly wobbly... time-y wimey... stuff')
             error = np.sqrt(np.diag(invSigma3))
         if reponse2 == 'b':
+            reponse3 = raw_input("Oh wait, do you also want to see the plots? [yes/no]:")
+            if reponse3 == 'yes':
+                print('Well...that s embarassing but for the moment it do not work. Please accept our excuses for the disturbance')
+            if reponse3 == 'no':
+                print('well ok... ʕ•͡-•ʔ ')
             print('Congrats, all the Universe, will explose')
             error = np.sqrt(np.diag(invSigma4))
 elif reponse == '42':
     print('je suis un ordinateur d une si infiniment subtile complexite que la vie organique elle même fait partie de mes unités de calculs. Et vous mêmes prendrez de nouvelles formes, plus primitives, et pénétreraient dans l ordinateur pour naviguer le long des dix millions d années de son programme. Je construirai cet ordinateur pour vous, et le nommerai' )
+    print('DO NOT FORGET YOUR TOWEL, NEVER')
+    print('Alien are afraid of towel')
+    print('For instance, on the planet Earth, man had always assumed that he was more intelligent than dolphins because he had achieved so much—the wheel, New York, wars and so on—whilst all the dolphins had ever done was muck about in the water having a good time. But conversely, the dolphins had always believed that they were far more intelligent than man—for precisely the same reasons.')
 else:
-    print ("Are you kidding me???!!!")
-    print("lol, try again")
+    print ("Good aswer.")
+    print("Thank you for your participation, we hope you will have a great life. Please enjoy your day")
 print(error)
 exit(-1)      
 number_of_stars = 1000
