@@ -1,10 +1,16 @@
-
+from __future__ import print_function
 """
 Created on Fri Mar 16 17:04:07 2018
 @author: isabeau
 """
 
 import numpy as np
+import re
+import os
+
+from mpi4py import MPI
+
+#import matplotlib.pyplot as plt
 import random as rd
 import pylab as pl
 import matplotlib.pyplot as plt
@@ -12,7 +18,8 @@ import matplotlib.pyplot as plt
 from time import time
 from collections import namedtuple
  
-   
+working_directory = '/home/isabeau/'
+  
 def gen_rand_point(): 
     pi = np.random.normal(0, 1, 3)
     modulus_sqr_pi = np.dot(pi,pi)
@@ -78,8 +85,7 @@ month = week * 4.
 measurement_times = np.arange(0, 6*month, 1*week)
 
 GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
-GW_par = GW_parameters( logGWfrequency = np.log( 2 ) - 7 * np.log(10), logAmplus = np.log(3) - 14*np.log(10), logAmcross = np.log(3) - 14*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi/2. )
-#GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(day)), logAmplus = np.log(0.5), logAmcross = np.log(0.5), cosTheta = 1.0, Phi = 1.0, DeltaPhiPlus = 0 , DeltaPhiCross = 0 )
+GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1 * np.pi , DeltaPhiCross = 1 * np.pi )
         
 changing_star_positions = np.array([ [ delta_n(star_positions[i], t, GW_par) for i in range(number_of_stars)] for t in measurement_times] )
 
@@ -96,22 +102,22 @@ from scipy.special import ndtri
 LN2PI = np.log(2.*np.pi)
 
 class GaiaModelPyMultiNest(Solver):
-# define the prior parameters
-   
-    logGWfrequencymin = -8
-    logGWfrequencymax = -6
-    logAmplusmin = -14
-    logAmplusmax = -13
-    logAmcrossmin = -14
-    logAmcrossmax = -13
-    cosThetamin = -1
-    cosThetamax = 1
-    Phimin = 0
-    Phimax = 2*np.pi
-    DeltaPhiPlusmin= 0
-    DeltaPhiPlusmax = 2*np.pi
-    DeltaPhiCrossmin= 0
-    DeltaPhiCrossmax = 2*np.pi
+
+# define the prior parameters    
+    logGWfrequencymin = np.log(2*np.pi/(3*4*7*24*3600.)) - 1.0e-2
+    logGWfrequencymax = np.log(2*np.pi/(3*4*7*24*3600.)) + 1.0e-2
+    logAmplusmin = -12*np.log(10.) - 1.0e-1
+    logAmplusmax = -12*np.log(10.) + 1.0e-1
+    logAmcrossmin = -12*np.log(10.) - 1.0e-1
+    logAmcrossmax = -12*np.log(10.) + 1.0e-1
+    cosThetamin = 0.5 - 1.0e-1
+    cosThetamax = 0.5 + 1.0e-1
+    Phimin = 1.0 - 1.0e-1
+    Phimax = 1.0 + 1.0e-1
+    DeltaPhiPlusmin = np.pi - 1.0e-1
+    DeltaPhiPlusmax = np.pi + 1.0e-1
+    DeltaPhiCrossmin = np.pi - 1.0e-1
+    DeltaPhiCrossmax = np.pi + 1.0e-1
 
 
     def __init__(self, data, sky_positions, measurement_times, sigma, **kwargs):
@@ -205,7 +211,7 @@ nlive = 10 #1024 #number of live points
 ndim = 7 #number of parameters (n and c here)
 tol = 0.5 #stopping criteria, smaller longer but more accurate
 
-
+"""
 y = []
 x = []
 for i in range(100):
@@ -279,11 +285,7 @@ plt.plot(X, np.exp(Y))
 plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/deltaphi.png")
 plt.clf()
 
-
-
-
-
-exit(-1)
+"""
 
 solution = GaiaModelPyMultiNest(changing_star_positions, star_positions, measurement_times, sigma, n_dims=ndim,
-                                        n_live_points=nlive, evidence_tolerance=tol, outputfiles_basename = '/home/isabeau/Documents/Cours/isabeaugaiaGWproject/delta_results/run1');
+                                        n_live_points=nlive, evidence_tolerance=tol, outputfiles_basename="{}/1-".format(os.environ['outputfiles_dir']),init_MPI=False,verbose=True,resume=False)
