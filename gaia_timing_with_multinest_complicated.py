@@ -1,45 +1,51 @@
-from __future__ import print_function
 # -*- coding: utf-8 -*-
 """
 Created on Fri Mar 16 17:04:07 2018
 
 @author: isabeau
 """
-
-working_directory = '/home/isabeau/'
-
-from time import time
+working_directory = '/home/isabeau/Documents/Cours/isabeaugaiaGWproject/'
 
 import numpy as np
 import re
 import os
 import matplotlib.pyplot as plt
-from mpi4py import MPI
-
-#import matplotlib.pyplot as plt
 from collections import namedtuple
 
+c = 2.99e8
+w = np.pi/2
 
 GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
     
-def delta_n ( n , t, GW_par ):
- 
-    # basis vectors
+
+
+def delta_ncomplicated ( n , time , GW_par, distance ) :
+
+    wWl = -2 * np.pi * distance / ( c / np.power(10 , GW_par.logGWfrequency))
     epsilon_theta = np.array([GW_par.cosTheta*np.cos(GW_par.Phi), GW_par.cosTheta*np.sin(GW_par.Phi) , -np.sqrt(1-np.power(GW_par.cosTheta,2))])
     epsilon_phi = np.array([-np.sin(GW_par.Phi), np.cos(GW_par.Phi), 0])
 
-    # direction to GW source
     q = np.array([np.sqrt(1-np.power(GW_par.cosTheta,2)) * np.cos(GW_par.Phi), np.sqrt(1-np.power(GW_par.cosTheta,2)) * np.sin(GW_par.Phi),GW_par.cosTheta])
-    
-    # basis tensors
+
     epsilon_plus= np.outer(epsilon_theta, epsilon_theta) - np.outer(epsilon_phi, epsilon_phi)
     epsilon_cross= np.outer(epsilon_theta, epsilon_phi) + np.outer(epsilon_phi,epsilon_theta)
 
-    # metric perturbation
-    H = np.exp(GW_par.logAmplus) * np.cos(GW_par.DeltaPhiPlus + t*np.exp(GW_par.logGWfrequency)) * epsilon_plus + np.exp(GW_par.logAmcross) * np.cos(GW_par.DeltaPhiCross + t*np.exp(GW_par.logGWfrequency))*epsilon_cross
-    # compute astrometric deflection, delta_n
-    return (n-q)/(2*(1-np.dot(q,n)))*np.dot(n,np.dot(H,n))-0.5*np.dot(H,n)
+    H = (np.exp(GW_par.logAmplus)*np.exp(1j*GW_par.DeltaPhiPlus)*epsilon_plus + np.exp(GW_par.logAmcross)*np.exp(1j*GW_par.DeltaPhiCross)*epsilon_cross )
 
+    Bigterm = (1 - np.exp(-1j*wWl*(1-np.dot(q,n))))
+
+    Hterm = ( np.dot(n,np.dot(H,n)) ) / ( 2 * (1-np.dot(q,n)) )
+
+    denom = wWl * (1-np.dot(q,n))
+    
+    first = (1+(1j*(2-np.dot(q,n))/(denom)) * Bigterm) * n
+    
+    second = ( 1 + 1j * ( Bigterm / denom ) ) * q 
+
+    third = (0.5 + 1j * (Bigterm / denom ) ) * np.dot(H , n) 
+    
+    return np.real(((first + second)*Hterm -third)*np.exp(-1j*w*time)) 
+    
 def orthographic_projection_north(p):
     if p[2]>0:
         return [p[0], p[1]]
@@ -59,7 +65,7 @@ def cartesian_coordinate_from_latitude_and_longitude(l,b):
 def LoadData( filename ):
 
     if ( os.path.isfile( filename ) == False ):
-        print("Error: file does not exist")
+        print "Error: file does not exist"
         return 0
 
     with open( filename ) as f:
@@ -67,7 +73,7 @@ def LoadData( filename ):
 
     data = []
 
-    for i in range( len( content ) ):
+    for i in range( 10 ) : #len( content ) ):
 
         line = content[i]
         line = re.split(', \[|\], \]|\]',line)
@@ -76,19 +82,19 @@ def LoadData( filename ):
         
         SkyPosition = cartesian_coordinate_from_latitude_and_longitude(SkyPosition[0],SkyPosition[1])       
         
-        Times = np.array( [ np.uint64(a) for a in re.split(', ',line[1]) ] )
+        Times = np.array( [ np.int64(a) for a in re.split(', ',line[1]) ] )
 
         ScanAngles = np.array( [ float(a) for a in re.split(', ',line[3]) ] )
 
         if ( len(Times) != len(ScanAngles) ):
-            print("Error: something bad has happened in LoadData()")
+            print "Error: something bad has happened in LoadData()"
             return 0
 
         data.append( [ SkyPosition , Times , ScanAngles] )
 
     return data
     
-def calculate_delta_t(n, t, psi, GW_par):
+def calculate_delta_t(n, t, psi, GW_par, distances):
  
     # spherical polar coordinates of the star
     phi = np.arctan2(n[1],n[0])
@@ -102,7 +108,7 @@ def calculate_delta_t(n, t, psi, GW_par):
     x = np.sin(psi)*e_phi - np.cos(psi)*e_theta
     
     # astrometric deflection
-    dn = delta_n ( n , t, GW_par )
+    dn = delta_ncomplicated ( n , t, GW_par, distances )
     
     # gaia's angular rotation frequency (rad/s) period = 6 hours
     w = 2. * np.pi / ( 6. * 60. * 60. )
@@ -112,19 +118,134 @@ def calculate_delta_t(n, t, psi, GW_par):
     #IT IS IN SECONDS
     
     
-def calculate_timing_residuals ( star_positions_times_angles , GW_par ):
+def calculate_timing_residuals ( star_positions_times_angles , GW_par, distances ):
 
     x = []
     for j in range( len( star_positions_times_angles ) ): # loop over stars
         n = star_positions_times_angles[j][0]
-        x.append( [ 1.0e9 * calculate_delta_t(n, 1.0e-9 * star_positions_times_angles[j][1][i], star_positions_times_angles[j][2][i], GW_par) for i in range(len(star_positions_times_angles[j][1])) ] ) # loop of measurements of each star
+        x.append( [ 1.0e9 * calculate_delta_t(n, 1.0e-9 * star_positions_times_angles[j][1][i], star_positions_times_angles[j][2][i], GW_par, distances) for i in range(len(star_positions_times_angles[j][1])) ] ) # loop of measurements of each star
     
     return np.array( x )
+
+def derivative1( n , t , psi, GW_par, param_index, scale, distance ):
+    deltas = [np.power( 10 , -10.5), np.power(10, -5.75) ,np.power(10, -5.75), np.power(10 , -6.25), np.power(10 , -6.25), np.power( 10 , -2.5), np.power(10 , -2.5)]
+    
+    if param_index == 0:
+        GW = GW_par._asdict()
+        GW['logGWfrequency'] = GW['logGWfrequency'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW, distance )
+        GW = GW_par._asdict()
+        GW['logGWfrequency'] = GW['logGWfrequency'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW, distance )
+        return answer / (2 * deltas[param_index] * scale) 
+    elif param_index == 1:
+        GW = GW_par._asdict()
+        GW['logAmplus'] = GW['logAmplus'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW, distance )
+        GW = GW_par._asdict()
+        GW['logAmplus'] = GW['logAmplus'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW, distance )
+        return answer / (2 * deltas[param_index] * scale ) 
+    elif param_index == 2:
+        GW = GW_par._asdict()
+        GW['logAmcross'] = GW['logAmcross'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW, distance )
+        GW = GW_par._asdict()
+        GW['logAmcross'] = GW['logAmcross'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW, distance )
+        return answer / (2 * deltas[param_index] * scale ) 
+    elif param_index == 3:
+        GW = GW_par._asdict()
+        GW['cosTheta'] = GW['cosTheta'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW, distance )
+        GW = GW_par._asdict()
+        GW['cosTheta'] = GW['cosTheta'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW, distance )
+        return answer / (2 * deltas[param_index] * scale) 
+    elif param_index == 4:
+        GW = GW_par._asdict()
+        GW['Phi'] = GW['Phi'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW, distance )
+        GW = GW_par._asdict()
+        GW['Phi'] = GW['Phi'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW, distance )
+        return answer / (2 * deltas[param_index] * scale ) 
+    elif param_index == 5:
+        GW = GW_par._asdict()
+        GW['DeltaPhiPlus'] = GW['DeltaPhiPlus'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW, distance )
+        GW = GW_par._asdict()
+        GW['DeltaPhiPlus'] = GW['DeltaPhiPlus'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW, distance )
+        return answer / (2 * deltas[param_index] * scale ) 
+    elif param_index == 6:
+        GW = GW_par._asdict()
+        GW['DeltaPhiCross'] = GW['DeltaPhiCross'] + deltas[param_index] * scale
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = calculate_delta_t( n , t , psi, GW, distance )
+        GW = GW_par._asdict()
+        GW['DeltaPhiCross'] = GW['DeltaPhiCross'] - deltas[param_index] * scale 
+        GW = namedtuple( "GW_parameters" , GW.keys() )(**GW)
+        answer = answer - calculate_delta_t( n, t, psi, GW, distance )
+        return answer / (2 * deltas[param_index] * scale) 
+    else:
+        print('error')
+        return(-1)
+        
+def test_derivatives(GW_par, distance) :
+    scale_values = np.power( 10 , np.linspace(-2 , 2 , 100) )
+    
+    for i in range(7):
+        y = [derivative1( np.array([np.sin(1.0)*np.cos(1.0) , np.sin(1.0) * np.sin(1.0) , np.cos(1.0)]), 3600 * 24 * 7 * 1.0e9 , np.pi/3. , GW_par , i , s, distance) for s in scale_values] 
+        ysq = [ Y * Y for Y in y]
+        plt.plot( np.log10(scale_values ) , np.log10( ysq )  )
+        plt.show()
+        plt.clf()
+
+
+    
+def matrix_derivative(n , t , psi, GW_par, distance):
+    v = [derivative1( n , t , np.pi/3. , GW_par, param_index, 1.0, distance ) for param_index in range(7)]
+    return np.outer( v , v )
+      
+    
+def fisher_matrix (star_positions_times_angles , GW_par, sigma_t, distances):
+    number_of_stars = len(star_positions_times_angles)
+    Sigma = np.zeros(( 7 , 7 ))
+    for i in range( number_of_stars):
+        for j in range( len(star_positions_times_angles[i][1])): #len of the times
+            M = matrix_derivative( star_positions_times_angles[i][0], star_positions_times_angles[i][1][j] * 1.0e-9 , star_positions_times_angles[i][2][j], GW_par, distances[i])
+            Sigma = Sigma + M / (sigma_t * sigma_t )
+    return(Sigma)
     
 GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*28*24*3600.)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1 * np.pi , DeltaPhiCross = 1 * np.pi )          
-test_derivatives(GW_par)
+test_derivatives(GW_par, 1.0e16)
 star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
 sigma_t = 1.0e-9
+distances = np.random.normal(3.086e19 , 1.0e16, len(star_positions_times_angles))
+from numpy import linalg as LA
+
+Sigma = fisher_matrix (star_positions_times_angles , GW_par, sigma_t, distances)    
+ 
+w,v = LA.eigh( Sigma )
+
+invSigma = np.dot( v , np.dot( np.diag(1./w) , np.transpose(v) )  )
+error = np.sqrt(np.diag(invSigma))
+#print( Sigma , w,v,invSigma)
+print(error)
+exit(-1)          
     
 def inject_fake_noise( timing_residuals , sigma_t ):
    
@@ -160,21 +281,21 @@ from pymultinest.solve import Solver
 
 class GaiaModelPyMultiNest(Solver):
 
-    # define the prior parameters    
-    logGWfrequencymin = np.log(2*np.pi/(3*4*7*24*3600.)) - 1.0e-2
-    logGWfrequencymax = np.log(2*np.pi/(3*4*7*24*3600.)) + 1.0e-2
-    logAmplusmin = -12*np.log(10.) - 3.0e-2
-    logAmplusmax = -12*np.log(10.) + 3.0e-2
-    logAmcrossmin = -12*np.log(10.) - 3.0e-2
-    logAmcrossmax = -12*np.log(10.) + 3.0e-2
-    cosThetamin = 0.5 - 1.0e-1
-    cosThetamax = 0.5 + 1.0e-1
-    Phimin = 1.0 - 1.0e-1
-    Phimax = 1.0 + 1.0e-1
-    DeltaPhiPlusmin = np.pi - 1.0e-1
-    DeltaPhiPlusmax = np.pi + 1.0e-1
-    DeltaPhiCrossmin = np.pi - 1.0e-1
-    DeltaPhiCrossmax = np.pi + 1.0e-1
+    # define the prior parameters
+    logGWfrequencymin = -13
+    logGWfrequencymax = -11
+    logAmplusmin = -12*np.log(10) - 1.0e-6
+    logAmplusmax = -12*np.log(10) + 1.0e-6
+    logAmcrossmin = -13*np.log(10) - 1.0e-6
+    logAmcrossmax = -13*np.log(10) + 1.0e-6
+    cosThetamin = 0.5 - 1.0e-6
+    cosThetamax = 0.5 + 1.0e-6
+    Phimin = 1.0 - 1.0e-6
+    Phimax = 1.0 + 1.0e-6
+    DeltaPhiPlusmin = np.pi - 1.0e-6
+    DeltaPhiPlusmax = np.pi + 1.0e-6
+    DeltaPhiCrossmin = np.pi / 2 - 1.0e-6
+    DeltaPhiCrossmax = np.pi / 2 + 1.0e-6
 
     def __init__(self, star_positions_times_angles, timing_residuals, sigma_t, **kwargs):
         # set the data
@@ -274,16 +395,22 @@ star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-
 
 
 GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1 * np.pi , DeltaPhiCross = 1 * np.pi )
+
 timing_residuals = calculate_timing_residuals( star_positions_times_angles, GW_par )
 
+sigma_t = 1.6 # nanoseconds
+#timing_residuals = inject_fake_noise(timing_residuals, sigma_t)
 
 
-"""
-numb = 100
+
+
+
+
+numb = 1000
 y = np.zeros(numb)
 x = np.zeros(numb)
 
-step_size = 0.00001
+step_size = 0.001
 for i in range( numb ):
     cube = np.array( [ GW_par.logGWfrequency + step_size*(i-0.5*numb), GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
     x[i] = GW_par.logGWfrequency + step_size*(i-0.5*numb)
@@ -294,15 +421,12 @@ plt.plot(x,np.exp(y)) # we want to plot the likelihood (not log-likelihood) so w
 plt.savefig(working_directory+"isabeaugaiaGWproject/timing_frequency.png")
 plt.clf()
 
-
-
-
-
+"""
 y = np.zeros(numb)
 x = np.zeros(numb)
 Y = np.zeros(numb)
 X = np.zeros(numb)
-step_size = 0.001
+step_size = 0.1
 for i in range( numb ):
     cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus + step_size*(i-0.5*numb), GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
     x[i] = GW_par.logAmplus + step_size*(i-0.5*numb)
@@ -322,12 +446,13 @@ plt.clf()
 
 
 y = np.zeros(numb)
-x = np.linspace( 0.45 , 0.55 , 100 )
-i = 0
-for X in x :
-    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, X , GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] ) 
+x = np.zeros(numb)
+step_size = 0.01
+for i in range( numb ):
+    cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta + step_size*(i-0.5*numb), GW_par.Phi, GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
+    x[i] = GW_par.cosTheta + step_size*(i-0.5*numb) 
     y[i] = TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube) 
-    i = i + 1
+
 y=y-max(y) # this line shifts all the log-likelihood values by a constant so the maximum value is logl=0
 plt.plot(x,np.exp(y)) # we want to plot the likelihood (not log-likelihood) so we need to use np.exp here
 plt.savefig(working_directory+"isabeaugaiaGWproject/timing_cosTheta.png")
@@ -336,7 +461,7 @@ plt.clf()
 
 y = np.zeros(numb)
 x = np.zeros(numb)
-step_size = 0.0001
+step_size = 0.01
 for i in range( numb ):
     cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi + step_size*(i-0.5*numb), GW_par.DeltaPhiPlus, GW_par.DeltaPhiCross ] )
     x[i] = GW_par.Phi + step_size*(i-0.5*numb) 
@@ -352,7 +477,7 @@ y = np.zeros(numb)
 x = np.zeros(numb)
 Y = np.zeros(numb)
 X = np.zeros(numb)
-step_size = 0.0001
+step_size = 0.1
 for i in range( numb ):
     cube = np.array( [ GW_par.logGWfrequency, GW_par.logAmplus, GW_par.logAmcross, GW_par.cosTheta, GW_par.Phi, GW_par.DeltaPhiPlus + step_size*(i-0.5*numb), GW_par.DeltaPhiCross ] )
     x[i] = GW_par.DeltaPhiPlus + step_size*(i-0.5*numb)
@@ -367,6 +492,7 @@ plt.plot(X, np.exp(Y))
 plt.savefig(working_directory+"isabeaugaiaGWproject/timing_deltaphi.png")
 plt.clf()
 """
+exit(-1)
 
 
 
@@ -380,4 +506,4 @@ nlive = 1024 #number of live points
 ndim = 7 #number of parameters
 tol = 0.5 #stopping criteria, smaller longer but more accurate
 
-solution = GaiaModelPyMultiNest(star_positions_times_angles, timing_residuals, sigma_t, n_dims=ndim, n_live_points=nlive, evidence_tolerance=tol, outputfiles_basename="{}/1-".format(os.environ['outputfiles_dir']),init_MPI=False,verbose=True,resume=False)
+solution = GaiaModelPyMultiNest(star_positions_times_angles, timing_residuals, sigma_t, n_dims=ndim, n_live_points=nlive, evidence_tolerance=tol, outputfiles_basename = '/home/isabeau/Documents/Cours/isabeaugaiaGWproject/delta_results/run1', verbose = True);
