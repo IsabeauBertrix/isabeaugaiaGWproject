@@ -6,18 +6,18 @@ Created on Fri Mar 16 17:04:07 2018
 @author: isabeau
 """
 working_directory = '/home/isabeau/'
-
 from time import time
 
 import numpy as np
 import re
 import os
 
+import matplotlib.pyplot as plt
 from mpi4py import MPI
 
 #import matplotlib.pyplot as plt
 from collections import namedtuple
-    
+
 def delta_n ( n , t, GW_par ):
  
     # basis vectors
@@ -115,6 +115,12 @@ def calculate_timing_residuals ( star_positions_times_angles , GW_par ):
     
     return np.array( x )
     
+GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*28*24*3600.)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1 * np.pi , DeltaPhiCross = 1 * np.pi )          
+test_derivatives(GW_par)
+star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
+sigma_t = 1.0e-9
+
+    
 def inject_fake_noise( timing_residuals , sigma_t ):
    
     for j in range( len( timing_residuals ) ): # loop over stars
@@ -152,10 +158,10 @@ class GaiaModelPyMultiNest(Solver):
     # define the prior parameters    
     logGWfrequencymin = np.log(2*np.pi/(3*4*7*24*3600.)) - 1.0e-2
     logGWfrequencymax = np.log(2*np.pi/(3*4*7*24*3600.)) + 1.0e-2
-    logAmplusmin = -12*np.log(10.) - 1.0e-1
-    logAmplusmax = -12*np.log(10.) + 1.0e-1
-    logAmcrossmin = -12*np.log(10.) - 1.0e-1
-    logAmcrossmax = -12*np.log(10.) + 1.0e-1
+    logAmplusmin = -12*np.log(10.) - 3.0e-2
+    logAmplusmax = -12*np.log(10.) + 3.0e-2
+    logAmcrossmin = -12*np.log(10.) - 3.0e-2
+    logAmcrossmax = -12*np.log(10.) + 3.0e-2
     cosThetamin = 0.5 - 1.0e-1
     cosThetamax = 0.5 + 1.0e-1
     Phimin = 1.0 - 1.0e-1

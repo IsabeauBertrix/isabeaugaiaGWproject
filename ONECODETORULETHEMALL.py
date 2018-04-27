@@ -643,8 +643,10 @@ def Save_Results_To_File ( results , filename ):
     return 1
 
 from multiprocessing import Pool
+
 num = 6
 n_cpus = 2
+
 argument_list = [ [ sigma ] for i in range(num) ]
 p = Pool ( n_cpus )
 results = p.map ( WapperFunction_FisherMatrix , argument_list )

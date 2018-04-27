@@ -106,10 +106,10 @@ class GaiaModelPyMultiNest(Solver):
 # define the prior parameters    
     logGWfrequencymin = np.log(2*np.pi/(3*4*7*24*3600.)) - 1.0e-2
     logGWfrequencymax = np.log(2*np.pi/(3*4*7*24*3600.)) + 1.0e-2
-    logAmplusmin = -12*np.log(10.) - 1.0e-1
-    logAmplusmax = -12*np.log(10.) + 1.0e-1
-    logAmcrossmin = -12*np.log(10.) - 1.0e-1
-    logAmcrossmax = -12*np.log(10.) + 1.0e-1
+    logAmplusmin = -12*np.log(10.) - 3.0e-2
+    logAmplusmax = -12*np.log(10.) + 3.0e-2
+    logAmcrossmin = -12*np.log(10.) - 3.0e-2
+    logAmcrossmax = -12*np.log(10.) + 3.0e-2
     cosThetamin = 0.5 - 1.0e-1
     cosThetamax = 0.5 + 1.0e-1
     Phimin = 1.0 - 1.0e-1
