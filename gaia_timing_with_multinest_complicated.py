@@ -44,7 +44,7 @@ def delta_ncomplicated ( n , time , GW_par, distance ) :
 
     third = (0.5 + 1j * (Bigterm / denom ) ) * np.dot(H , n) 
     
-    return np.real(((first + second)*Hterm -third)*np.exp(-1j*w*time)) 
+    return np.real(((first + second)*Hterm -third)*np.exp(-1j*np.exp(GW_par.logGWfrequency)*time)) 
     
 def orthographic_projection_north(p):
     if p[2]>0:

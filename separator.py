@@ -3,7 +3,7 @@
 Created on Thu Apr  5 16:43:45 2018
 @author: isabeau
 """
-import matplotlib.pyplot as plt
+
 import numpy as np
 import os
 import re
@@ -22,51 +22,47 @@ def LoadTimes( filename ):
         line = content[i]
         line = re.split(', \[|\], \[|\]',line)
         
-        Time = np.array( [ np.int64(a) for a in re.split(', ',line[1]) ] )
+        Time = np.array( [ np.uint64(a) for a in re.split(', ',line[1]) ] )
         Times.append([Time])
       
     return Times
 
 def SplitTimes( Times ):
-    answer = []
-    for t in Times:
-        index = 0
-        for i in range( len( t[0] ) - 1 ):
-            if t[0][i+1] < t[0][i]:
-                index = i
-        #print(t)
-        first = t[0][0:index+1]
-        second = t[0][index+1::]
-        answer.append([first,second])
-    return answer
+    return 1
 
  
 Times = LoadTimes( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
 Split = SplitTimes( Times )
-#print(Times[0][0])
-#print(Split[1][1][1])
 
-matrix = []
-Count = []
+print(Times)
+# Times [ [.........] , [...........] , [...........]         ] 
+# Split [ 
+#          [ [.....] , [.....] ] , 
+#          [ [.....] , [.....] ] , 
+#          [ [.....] , [.....] ] ,
+#          1000 lines
+#       ]
+
+# loop over stars
+#   loop over times in telescope 1
+#     loop over times in telescope 2
+#       if pair of times is less than two hours
+#          then save pair to file
+
+"""
 for i in range(1000):
-    liste = []
-    delay = 2 * 3600 * 1.0e9
-    for j in range(len(Split[i][0])):
-        count = 0
-        for k in range(len(Split[i][1])):
-            if np.fabs(Split[i][0][j]  - Split[i][1][k] ) < delay :
-                liste.append([Split[i][0][j], Split[i][1][k]])
-                count = count + 1
-        Count.append(count)
-    matrix.append(liste)
-print(matrix[0])
-plt.hist(Count, [-0.5, 0.5, 1.5, 2.5])
-plt.show()
-exit(-1)
+    for j in range
+
+
+
 #print(Times[5][0][0])
 #print(Times[5][0][1])
 #print(Times[5][0][2])
 
+print(len(Times[5][0]))
+print(len(Times[11][0]))
+print(len(Times[12][0]))
+"""
 bitemps=np.zeros((1000,2,500), dtype='uint64')
 
         

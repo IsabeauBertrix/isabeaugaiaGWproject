@@ -51,7 +51,7 @@ def LoadData( filename ):
 
     data = []
 
-    for i in range( len( content ) ):
+    for i in range( 100 ):#len( content ) ):
 
         line = content[i]
         line = re.split(', \[|\], \]|\]',line)
@@ -629,8 +629,7 @@ distances = np.random.normal(3.086e16 , 1.0e13, len(star_positions_times_angles)
 
 def WapperFunction_FisherMatrix ( args ):
     
-    star_positions_times_angles = args[0]
-    sigma = args[1]
+    sigma = args[0]
 
     GW_par = gen_rand_GW ()
     
@@ -644,9 +643,9 @@ def Save_Results_To_File ( results , filename ):
     return 1
 
 from multiprocessing import Pool
-num = 100
-n_cpus = 48
-argument_list = [ [star_positions_times_angles , sigma ] for i in range(num) ]
+num = 6
+n_cpus = 2
+argument_list = [ [ sigma ] for i in range(num) ]
 p = Pool ( n_cpus )
 results = p.map ( WapperFunction_FisherMatrix , argument_list )
 Save_Results_To_File ( results , "test.dat" )

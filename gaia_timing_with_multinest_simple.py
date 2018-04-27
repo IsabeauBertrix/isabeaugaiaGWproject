@@ -13,6 +13,7 @@ import os
 import matplotlib.pyplot as plt
 from collections import namedtuple
 
+distances = np.random.normal(3.086e16 , 1.0e13, len(star_positions_times_angles))
 c = 2.99e8
 w = np.pi/2
 
