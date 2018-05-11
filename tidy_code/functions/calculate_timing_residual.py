@@ -16,7 +16,7 @@ def calculate_timing_residuals_complicated ( star_positions_times_angles , GW_pa
     x = []
     for j in range( len( star_positions_times_angles ) ): # loop over stars
         n = star_positions_times_angles[j][0]
-        x.append( [ 1.0e9 * calculate_delta_t_complicated(n, 1.0e-9 * star_positions_times_angles[j][1][i], star_positions_times_angles[j][2][i], GW_par, distances) for i in range(len(star_positions_times_angles[j][1])) ] ) # loop of measurements of each star
+        x.append( [ 1.0e9 * calculate_delta_t_complicated(n, 1.0e-9 * star_positions_times_angles[j][1][i], star_positions_times_angles[j][2][i], GW_par, distances[j]) for i in range(len(star_positions_times_angles[j][1])) ] ) # loop of measurements of each star
     
     return np.array( x )
       

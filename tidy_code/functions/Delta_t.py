@@ -25,7 +25,7 @@ def calculate_delta_t_simple(n, t, psi, GW_par ):
     #IT IS IN SECONDS
 
 
-def calculate_delta_t_complicated(n, t, psi, GW_par, distances):
+def calculate_delta_t_complicated(n, t, psi, GW_par, distance):
  
     # spherical polar coordinates of the star
     phi = np.arctan2(n[1],n[0])
@@ -39,7 +39,7 @@ def calculate_delta_t_complicated(n, t, psi, GW_par, distances):
     x = np.sin(psi)*e_phi - np.cos(psi)*e_theta
     
     # astrometric deflection
-    dn = delta_ncomplicated ( n , t, GW_par, distances )
+    dn = delta_ncomplicated ( n , t, GW_par, distance )
     
     # gaia's angular rotation frequency (rad/s) period = 6 hours
     w = 2. * np.pi / ( 6. * 60. * 60. )
