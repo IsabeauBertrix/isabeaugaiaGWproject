@@ -1,7 +1,7 @@
 import numpy as np
 
-
-
+c = 2.99e8
+w = np.pi/2
 
 
 def delta_n ( n , t, GW_par ):
@@ -51,3 +51,17 @@ def delta_ncomplicated ( n , time , GW_par, distance ) :
     third = (0.5 + 1j * (Bigterm / denom ) ) * np.dot(H , n) 
     
     return np.real(((first + second)*Hterm -third)*np.exp(-1j*np.exp(GW_par.logGWfrequency)*time)) 
+
+    """
+    salut = 2-np.dot(q,n)/(denom)
+
+    first = 1+(1j* np.dot(salut , Bigterm)) * n
+    
+    cava = Bigterm / denom
+        
+    second = np.dot(cava , q ) #( 1 + 1j * cava ) * q 
+    
+    third = (0.5 + 1j * cava ) * np.dot(H , n) 
+    
+    return np.real(((first + second)*Hterm -third)*np.exp(-1j*np.exp(GW_par.logGWfrequency)*time)) 
+   """

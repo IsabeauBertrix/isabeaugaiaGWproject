@@ -1,13 +1,10 @@
 import numpy as np
 import os
 import re
+from CoordinateConversion import *
+
 
 def LoadData( filename , NumberOfStarsToLoad = -1 ):
-
-    if NumberOfStarsToLoad < 0:
-        num = len ( content )
-    else:
-        num = NumberOfStarsToLoad
 
     if ( os.path.isfile( filename ) == False ):
         print ( "Error: file does not exist" )
@@ -17,7 +14,10 @@ def LoadData( filename , NumberOfStarsToLoad = -1 ):
         content = f.readlines()
 
     data = []
-
+    if NumberOfStarsToLoad < 0:
+        num = len ( content )
+    else:
+        num = NumberOfStarsToLoad
     for i in range( num ):
 
         line = content[i]
