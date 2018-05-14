@@ -1,7 +1,7 @@
+
 # -*- coding: utf-8 -*-
 """
 Created on Wed Apr 11 16:09:39 2018
-
 @author: isabeau
 """
 
@@ -63,7 +63,6 @@ def plot_data(changing_star_positions):
         new_p = [orthographic_projection_north(p+delta_p[j]) for j in range(len(measurement_times))] 
         plt.plot( [ new_p[j][0] for j in range(len(measurement_times))] , [new_p[j][1] for j in range(len(measurement_times))] , 'r-' )
         plt.plot( [ new_p[j][0] for j in range(len(measurement_times))] , [new_p[j][1] for j in range(len(measurement_times))] , 'ro' )
-
     theta = pl.linspace(0, 2*np.pi, 40)
     x = np.cos(theta)
     y = np.sin(theta)
@@ -112,10 +111,8 @@ class GaiaModelPyMultiNest(Solver):
         """
         The prior transform going from the unit hypercube to the true parameters. This function
         has to be called "Prior".
-
         Args:
             cube (:class:`numpy.ndarray`): an array of values drawn from the unit hypercube
-
         Returns:
             :class:`numpy.ndarray`: an array of the transformed parameters
         """
@@ -142,10 +139,8 @@ class GaiaModelPyMultiNest(Solver):
     def LogLikelihood(self, cube):
         """
         The log likelihood function. This function has to be called "LogLikelihood".
-
         Args:
             cube (:class:`numpy.ndarray`): an array of parameter values.
-
         Returns:
             float: the log likelihood value.
         """

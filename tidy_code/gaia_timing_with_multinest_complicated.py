@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Mar 16 17:04:07 2018
-
 @author: isabeau
 """
 working_directory = '/home/isabeau/Documents/Cours/isabeaugaiaGWproject/'
-
 import numpy as np
 from numpy import linalg as LA
 
@@ -90,10 +88,8 @@ class GaiaModelPyMultiNest(Solver):
         """
         The prior transform going from the unit hypercube to the true parameters. This function
         has to be called "Prior".
-
         Args:
             cube (:class:`numpy.ndarray`): an array of values drawn from the unit hypercube
-
         Returns:
             :class:`numpy.ndarray`: an array of the transformed parameters
         """
@@ -120,10 +116,8 @@ class GaiaModelPyMultiNest(Solver):
     def LogLikelihood(self, cube):
         """
         The log likelihood function. This function has to be called "LogLikelihood".
-
         Args:
             cube (:class:`numpy.ndarray`): an array of parameter values.
-
         Returns:
             float: the log likelihood value.
         """

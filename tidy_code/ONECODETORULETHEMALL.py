@@ -1,7 +1,7 @@
+
 # -*- coding: utf-8 -*-
 """
 Created on Mon Apr 16 10:40:04 2018
-
 @author: isabeau
 """
 
@@ -84,7 +84,6 @@ def oneDhist_automatic_xrange( chain ):
     plt.hist(chain, bins = bin_edges)
     plt.show()
     return 1
-
 oneDhist_automatic_xrange(matrix[:,0] )
 plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/fisher_matrix/logfrenquency.png")
 oneDhist_automatic_xrange(matrix[:,1] )
@@ -99,8 +98,6 @@ oneDhist_automatic_xrange(matrix[:,5] )
 plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/fisher_matrix/deltaphiplus.png")
 oneDhist_automatic_xrange(matrix[:,6] )
 plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/fisher_matrix/deltaphicross.png*")
-
-
 """         
 
 print("Welcome to Skynet industry")
@@ -169,4 +166,3 @@ elif reponse == '66':
 else:
     print ("Good aswer.")
     print("Thank you for your participation, we hope you will have a great life. Please enjoy your day")
-
