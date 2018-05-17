@@ -8,13 +8,13 @@ import numpy as np
 from numpy import linalg as LA
 
 import random as rd
-import pylab as pl
-import matplotlib.pyplot as plt
+#import pylab as pl
+#import matplotlib.pyplot as plt
 import re
 import os
 import sys 
 from collections import namedtuple
-
+from mpi4py import MPI
 sys.path.append("functions/")
 
 from CoordinateConversion import *
@@ -63,23 +63,21 @@ from scipy.special import ndtri
 LN2PI = np.log(2.*np.pi)
 
 class GaiaModelPyMultiNest(Solver):
-# define the prior parameters
-   
-    logGWfrequencymin = -8
-    logGWfrequencymax = -6
-    logAmplusmin = -14
-    logAmplusmax = -13
-    logAmcrossmin = -14
-    logAmcrossmax = -13
-    cosThetamin = -1
-    cosThetamax = 1
-    Phimin = 0
-    Phimax = 2*np.pi
-    DeltaPhiPlusmin= 0
-    DeltaPhiPlusmax = 2*np.pi
-    DeltaPhiCrossmin= 0
-    DeltaPhiCrossmax = 2*np.pi
-
+    # define the prior parameters
+    logGWfrequencymin =np.log(2*np.pi/(3*month)) - 3.0* error[0]
+    logGWfrequencymax = np.log(2*np.pi/(3*month)) + 3.0* error[0]
+    logAmplusmin = -12*np.log(10) - 3.0 * error[1]
+    logAmplusmax = -12*np.log(10) + 3.0 * error[1]
+    logAmcrossmin = -12*np.log(10) - 3.0 * error[2]
+    logAmcrossmax = -12*np.log(10) + 3.0 * error[2]
+    cosThetamin = 0.5 - 3.0 * error[3]
+    cosThetamax = 0.5 + 3.0 * error[3]
+    Phimin = 1.0 - 3.0 * error[4]
+    Phimax = 1.0 + 3.0 * error[4]
+    DeltaPhiPlusmin = np.pi - 3.0 * error[5]
+    DeltaPhiPlusmax = np.pi + 3.0 * error[5]
+    DeltaPhiCrossmin = np.pi  - 3.0 * error[6]
+    DeltaPhiCrossmax = np.pi  + 3.0 * error[6]
 
     def __init__(self, data, star_positions_times_angles, sigma, distances, **kwargs):
         # set the data
@@ -174,5 +172,15 @@ ndim = 7 #number of parameters (n and c here)
 tol = 0.5 #stopping criteria, smaller longer but more accurate
 
 
-solution = GaiaModelPyMultiNest(changing_star_positions, star_positions_times_angles, sigma, distances, n_dims=ndim,
-                                        n_live_points=nlive, evidence_tolerance=tol, outputfiles_basename = '/home/isabeau/Documents/Cours/isabeaugaiaGWproject/delta_results/run2');
+solution = GaiaModelPyMultiNest(changing_star_positions,
+                                star_positions_times_angles,
+                                sigma,
+                                distances,
+                                n_dims=ndim,
+                                n_live_points=nlive,
+                                evidence_tolerance=tol,
+                                outputfiles_basename="{}/1-".format(os.environ['outputfiles_dir']),
+                                init_MPI=False,
+                                verbose=True,
+                                resume=False)
+
