@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 Created on Wed Apr 11 16:09:39 2018
@@ -30,19 +29,15 @@ day = 24 * 60 * 60.
 year = 3660. * 24. * 365.25
 week = 3660. * 24. * 7.
 month = week * 4.
-
 c = 2.99e8
 w = np.pi/2
 
 GW_parameters = namedtuple ( "GW_parameters" , "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross" )
 GW_par = GW_parameters ( logGWfrequency = np.log(2*np.pi/(3*month)) , logAmplus = -12*np.log(10) , logAmcross = -12*np.log(10) , cosTheta = 0.5 , Phi = 1.0 , DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi )
 
-from test_derivative import *
-test_derivatives3(GW_par)
-exit(-1)
-
-star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" , 20 )
+star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
 number_of_stars = len ( star_positions_times_angles )
+
 
 timing_residuals = calculate_timing_residuals_simple ( star_positions_times_angles, GW_par )
 sigma_t = 1.667 * 1.0e3 / np.sqrt ( 1.0e9 / number_of_stars ) 
@@ -51,7 +46,6 @@ Sigma3 = fisher_matrix3 ( star_positions_times_angles , GW_par, sigma_t*1.0e-9 )
 w3,v3 = LA.eigh ( Sigma3 )
 invSigma3 = np.dot ( v3 , np.dot( np.diag(1./w3) , np.transpose(v3) )  )
 error = np.sqrt ( np.diag ( invSigma3 ) )
-
 Save_Results_To_File ( invSigma3 , "{}/invSigma3.dat".format(os.environ['outputfiles_dir']) )
    
 from pymultinest.solve import Solver
@@ -85,6 +79,7 @@ class GaiaModelPyMultiNest ( Solver ):
         self._sigma_t = sigma_t
         self._logsigma_t = np.log ( sigma_t )
         self._sigma_tsq = sigma_t * sigma_t
+
         
         Solver.__init__(self, **kwargs)
       
@@ -128,8 +123,8 @@ class GaiaModelPyMultiNest ( Solver ):
        
         GW_par_multinest = GW_parameters ( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
 
-        modelled_timing_residuals = calculate_timing_residuals_simple ( star_positions_times_angles, GW_par_multinest )
-        
+        modelled_timing_residuals = calculate_timing_residuals_simple (self._star_positions_times_angles, GW_par_multinest )
+
         logl = 0
         for i in range ( self._number_of_stars ): # loop over stars
             for j in range ( len ( self._star_positions_times_angles[i][1] ) ): # loop over measurements
@@ -155,7 +150,7 @@ def TestLogLikelihood ( timing_residuals , star_positions_times_angles , sigma_t
     logl = 0
     for i in range ( number_of_stars ): # loop over stars
         for j in range ( len ( star_positions_times_angles[i][1] ) ): # loop over measurements
-            measured_timing_residual_in_nanoseconds = self._data[i][j]
+            measured_timing_residual_in_nanoseconds = timing_residuals[i][j]
             modelled_timing_residual_in_nanoseconds = modelled_timing_residuals[i][j]
             x = measured_timing_residual_in_nanoseconds - modelled_timing_residual_in_nanoseconds
             logl = logl - (0.5 * x*x / sigma_tsq + LN2PI/2. + logsigma_t ) 

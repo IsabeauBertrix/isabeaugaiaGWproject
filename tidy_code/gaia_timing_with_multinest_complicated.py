@@ -3,6 +3,7 @@
 Created on Fri Mar 16 17:04:07 2018
 @author: isabeau
 """
+
 import numpy as np
 from numpy import linalg as LA
 
@@ -12,7 +13,6 @@ import sys
 #import matplotlib.pyplot as plt
 from mpi4py import MPI
 from collections import namedtuple
-
 sys.path.append("functions/")
 
 from Delta_n import *
@@ -21,6 +21,7 @@ from LoadData import *
 from Delta_t import *
 from calculate_timing_residual import *
 from Add_Noise import *
+from derivatives import *
 from MATRIX import *
 from save_result_to_file import *
  
@@ -34,19 +35,14 @@ w = np.pi/2
 GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
 GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi )
 
-star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat", 5 )
+star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
 number_of_stars = len(star_positions_times_angles)
 distances = np.random.normal(3.086e19 , 1.0e16, len(star_positions_times_angles))
-
-changing_star_positions = []
-for i in range(number_of_stars):
-	changing_star_positions.append( [ delta_ncomplicated(star_positions_times_angles[i][0], t * 1.0e-9, GW_par, distances[i]) for t in star_positions_times_angles[i][1] ] )
 
 timing_residuals = calculate_timing_residuals_complicated( star_positions_times_angles, GW_par, distances )    
 sigma_t = 1.667 * 1.0e3 / np.sqrt(1.0e9/number_of_stars)
 
-
-Sigma4 = fisher_matrix4(star_positions_times_angles , GW_par, sigma_t, distances)    
+Sigma4 = fisher_matrix4(star_positions_times_angles , GW_par, sigma_t*1.0e-9, distances)    
 w4,v4 = LA.eigh( Sigma4 )
 invSigma4 = np.dot( v4 , np.dot( np.diag(1./w4) , np.transpose(v4) )  )
 error = np.sqrt(np.diag(invSigma4))
@@ -75,11 +71,10 @@ class GaiaModelPyMultiNest(Solver):
     DeltaPhiCrossmin = np.pi  - 2.5 * error[6]
     DeltaPhiCrossmax = np.pi  + 2.5 * error[6]
 
-    def __init__(self, data, star_positions_times_angles, timing_residuals, sigma_t, distances, **kwargs):
+    def __init__(self, timing_residuals , star_positions_times_angles , sigma_t, distances, **kwargs):
         # set the data
-	self._data = data
+	self._data = timing_residuals
         self._star_positions_times_angles = star_positions_times_angles
-        self._timing_residuals = timing_residuals
         self._number_of_stars = len(star_positions_times_angles)
         self._sigma_t = sigma_t      
         self._logsigma_t = np.log(sigma_t) 
@@ -128,12 +123,12 @@ class GaiaModelPyMultiNest(Solver):
        
         GW_par_multinest = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
 
-        modelled_timing_residuals = 1.0e9 * calculate_timing_residuals_complicated( self._star_positions_times_angles , GW_par_multinest, self._distances )
-        
+        modelled_timing_residuals = calculate_timing_residuals_complicated( self._star_positions_times_angles , GW_par_multinest, self._distances )
+
         logl = 0
         for i in range(self._number_of_stars): # loop over stars
             for j in range(len(self._star_positions_times_angles[i][1])): # loop over measurements
-                measured_timing_residual_in_nanoseconds = self._timing_residuals[i][j]
+                measured_timing_residual_in_nanoseconds = self._data[i][j]
                 modelled_timing_residual_in_nanoseconds = modelled_timing_residuals[i][j]
                 x = measured_timing_residual_in_nanoseconds - modelled_timing_residual_in_nanoseconds
                 logl = logl - (0.5 * x*x / self._sigma_tsq + LN2PI/2. + self._logsigma_t ) 
@@ -142,31 +137,33 @@ class GaiaModelPyMultiNest(Solver):
        
     
 
-def TestLogLikelihood(star_positions_times_angles, timing_residuals, sigma_t, cube):
-    GW_par = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
+def TestLogLikelihood( timing_residuals , star_positions_times_angles , sigma_t , distances, cube ):
+
+    GW_par_multinest = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
+
+    modelled_timing_residuals = calculate_timing_residuals_complicated ( star_positions_times_angles, GW_par_multinest, distances )
+    
     number_of_stars = len(star_positions_times_angles)
     sigma_tsq = sigma_t * sigma_t
     logsigma_t = np.log(sigma_t)
+
     logl = 0
     for i in range(number_of_stars): # loop over stars
-        for j in range(len(star_positions_times_angles[i][1])): # loop over measurements
+        for j in range(len(star_positions_times_angles[i][1]) ): # loop over measurements
             measured_timing_residual_in_nanoseconds = timing_residuals[i][j]
-            modelled_timing_residual_in_nanoseconds = 1.0e9 * calculate_delta_t_complicated( star_positions_times_angles[i][0] , 1.0e-9 * star_positions_times_angles[i][1][j] , star_positions_times_angles[i][2][j] , GW_par , distances[i])
+            modelled_timing_residual_in_nanoseconds = modelled_timing_residuals[i][j]
             x = measured_timing_residual_in_nanoseconds - modelled_timing_residual_in_nanoseconds
             logl = logl - (0.5 * x*x / sigma_tsq + LN2PI/2. + logsigma_t ) 
                
     return logl          
     
 
-timing_residuals = calculate_timing_residuals_complicated( star_positions_times_angles, GW_par, distances )
-
 nlive = 256 #number of live points
 ndim = 7 #number of parameters
 tol = 0.75 #stopping criteria, smaller longer but more accurate
 
-solution = GaiaModelPyMultiNest(changing_star_positions,
+solution = GaiaModelPyMultiNest(timing_residuals,
                                 star_positions_times_angles,
-                                timing_residuals,
                                 sigma_t,
                                 distances,
                                 n_dims=ndim,
