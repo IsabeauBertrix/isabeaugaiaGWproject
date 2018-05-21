@@ -5,8 +5,6 @@ Created on Wed Apr 11 16:09:39 2018
 @author: isabeau
 """
 
-working_directory = '/home/isabeau/Documents/Cours/isabeaugaiaGWproject/'
-
 import numpy as np
 from numpy import linalg as LA
 
@@ -39,12 +37,12 @@ w = np.pi/2
 GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
 GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi )
 
-star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
+star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat", 50 )
 number_of_stars = len(star_positions_times_angles)
 
 changing_star_positions = []
 for i in range(number_of_stars):
-	changing_star_positions.append( [ delta_n(star_positions_times_angles[i][0], t, GW_par) for t in star_positions_times_angles[i][1] ] )
+	changing_star_positions.append( [ delta_n(star_positions_times_angles[i][0], t * 1.0e-9, GW_par) for t in star_positions_times_angles[i][1] ] )
 
 timing_residuals = calculate_timing_residuals_simple( star_positions_times_angles, GW_par )    
 sigma_t = 1.667 * 1.0e3 / np.sqrt(1.0e9/number_of_stars) 
@@ -54,7 +52,7 @@ w3,v3 = LA.eigh( Sigma3 )
 invSigma3 = np.dot( v3 , np.dot( np.diag(1./w3) , np.transpose(v3) )  )
 error = np.sqrt(np.diag(invSigma3))
 
-Save_Results_To_File ( invSigma3 , "invSigma3.dat" )
+Save_Results_To_File ( invSigma3 , "{}/invSigma3.dat".format(os.environ['outputfiles_dir']) )
    
 """ 
 def plot_data(changing_star_positions):
@@ -77,24 +75,27 @@ def plot_data(changing_star_positions):
 """
 
 from pymultinest.solve import Solver
+from scipy.special import ndtri
+
+LN2PI = np.log(2.*np.pi)
 
 class GaiaModelPyMultiNest(Solver):
 
     # define the prior parameters
-    logGWfrequencymin = np.log(2*np.pi/(3*month)) - 3.0 * error[0]
-    logGWfrequencymax = np.log(2*np.pi/(3*month)) + 3.0 * error[0]
-    logAmplusmin = -12*np.log(10) - 3.0 * error[1]
-    logAmplusmax = -12*np.log(10) + 3.0 * error[1]
-    logAmcrossmin = -12*np.log(10) - 3.0 * error[2]
-    logAmcrossmax = -12*np.log(10) + 3.0 * error[2]
-    cosThetamin = 0.5 - 3.0 * error[3]
-    cosThetamax = 0.5 + 3.0 * error[3]
-    Phimin = 1.0 - 3.0 * error[4]
-    Phimax = 1.0 + 3.0 * error[4]
-    DeltaPhiPlusmin = np.pi - 3.0 * error[5]
-    DeltaPhiPlusmax = np.pi + 3.0 * error[5]
-    DeltaPhiCrossmin = np.pi  - 3.0 * error[6]
-    DeltaPhiCrossmax = np.pi  + 3.0 * error[6]
+    logGWfrequencymin = np.log(2*np.pi/(3*month)) - 2.5 * error[0]
+    logGWfrequencymax = np.log(2*np.pi/(3*month)) + 2.5 * error[0]
+    logAmplusmin = -12*np.log(10) - 2.5 * error[1]
+    logAmplusmax = -12*np.log(10) + 2.5 * error[1]
+    logAmcrossmin = -12*np.log(10) - 2.5 * error[2]
+    logAmcrossmax = -12*np.log(10) + 2.5 * error[2]
+    cosThetamin = 0.5 - 2.5 * error[3]
+    cosThetamax = 0.5 + 2.5 * error[3]
+    Phimin = 1.0 - 2.5 * error[4]
+    Phimax = 1.0 + 2.5 * error[4]
+    DeltaPhiPlusmin = np.pi - 2.5 * error[5]
+    DeltaPhiPlusmax = np.pi + 2.5 * error[5]
+    DeltaPhiCrossmin = np.pi  - 2.5 * error[6]
+    DeltaPhiCrossmax = np.pi  + 2.5 * error[6]
 
     def __init__(self, data, star_positions_times_angles, timing_residuals, sigma_t, **kwargs):
         # set the data
@@ -176,12 +177,10 @@ def TestLogLikelihood(data, star_positions_times_angles, timing_residuals, sigma
             logl = logl - (0.5 * x*x / sigma_tsq + LN2PI/2. + logsigma_t ) 
                
     return logl          
-    
-LN2PI = np.log(2.*np.pi)
 
-nlive = 512 #number of live points
+nlive = 256 #number of live points
 ndim = 7 #number of parameters
-tol = 0.5 #stopping criteria, smaller longer but more accurate
+tol = 0.75 #stopping criteria, smaller longer but more accurate
 
 solution = GaiaModelPyMultiNest(changing_star_positions,
                                 star_positions_times_angles,

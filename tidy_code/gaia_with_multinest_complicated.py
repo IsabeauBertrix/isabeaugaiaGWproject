@@ -25,9 +25,14 @@ from gen_rand_point import *
 from MATRIX import *
 from save_result_to_file import *
 
+day = 24 * 60 * 60.
+year = 3660. * 24. * 365.25
+week = 3660. * 24. * 7.
+month = week * 4.
+
 
 GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
-GW_par = GW_parameters( logGWfrequency = np.log( 2 ) - 7 * np.log(10), logAmplus = np.log(3) - 14*np.log(10), logAmcross = np.log(3) - 14*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi/2. )
+GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi )
     
 
 star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
@@ -36,14 +41,9 @@ distances = np.random.normal(3.086e16 , 1.0e13, len(star_positions_times_angles)
 
 number_of_stars = len(star_positions_times_angles)
 
-day = 24 * 60 * 60.
-year = 3660. * 24. * 365.25
-week = 3660. * 24. * 7.
-month = week * 4.
-
 changing_star_positions = []
 for i in range(number_of_stars):
-	changing_star_positions.append( [ delta_ncomplicated(star_positions_times_angles[i][0], t, GW_par, distances[i]) for t in star_positions_times_angles[i][1] ] )
+	changing_star_positions.append( [ delta_ncomplicated(star_positions_times_angles[i][0], t * 1.0e-9, GW_par, distances[i]) for t in star_positions_times_angles[i][1] ] )
 
 microarcsecond = np.pi/(180*3600*1e6)
 sigma = 100 * microarcsecond / np.sqrt(1.0e9/number_of_stars)
@@ -55,7 +55,7 @@ w2,v2 = LA.eigh( Sigma2 )
 invSigma2 = np.dot( v2 , np.dot( np.diag(1./w2) , np.transpose(v2) )  )
 error = np.sqrt(np.diag(invSigma2))
 
-Save_Results_To_File ( invSigma2 , "invSigma2.dat" )
+Save_Results_To_File ( invSigma2 , "{}/invSigma2.dat".format(os.environ['outputfiles_dir']) )
 
 from pymultinest.solve import Solver
 from scipy.special import ndtri  
@@ -64,21 +64,21 @@ LN2PI = np.log(2.*np.pi)
 
 class GaiaModelPyMultiNest(Solver):
     # define the prior parameters
-    logGWfrequencymin =np.log(2*np.pi/(3*month)) - 3.0* error[0]
-    logGWfrequencymax = np.log(2*np.pi/(3*month)) + 3.0* error[0]
-    logAmplusmin = -12*np.log(10) - 3.0 * error[1]
-    logAmplusmax = -12*np.log(10) + 3.0 * error[1]
-    logAmcrossmin = -12*np.log(10) - 3.0 * error[2]
-    logAmcrossmax = -12*np.log(10) + 3.0 * error[2]
-    cosThetamin = 0.5 - 3.0 * error[3]
-    cosThetamax = 0.5 + 3.0 * error[3]
-    Phimin = 1.0 - 3.0 * error[4]
-    Phimax = 1.0 + 3.0 * error[4]
-    DeltaPhiPlusmin = np.pi - 3.0 * error[5]
-    DeltaPhiPlusmax = np.pi + 3.0 * error[5]
-    DeltaPhiCrossmin = np.pi  - 3.0 * error[6]
-    DeltaPhiCrossmax = np.pi  + 3.0 * error[6]
-
+    logGWfrequencymin =np.log(2*np.pi/(3*month)) - 2.5 * error[0]
+    logGWfrequencymax = np.log(2*np.pi/(3*month)) + 2.5 * error[0]
+    logAmplusmin = -12*np.log(10) - 2.5 * error[1]
+    logAmplusmax = -12*np.log(10) + 2.5 * error[1]
+    logAmcrossmin = -12*np.log(10) - 2.5 * error[2]
+    logAmcrossmax = -12*np.log(10) + 2.5 * error[2]
+    cosThetamin = 0.5 - 2.5 * error[3]
+    cosThetamax = 0.5 + 2.5 * error[3]
+    Phimin = 1.0 - 2.5 * error[4]
+    Phimax = 1.0 + 2.5 * error[4]
+    DeltaPhiPlusmin = np.pi - 2.5 * error[5]
+    DeltaPhiPlusmax = np.pi + 2.5 * error[5]
+    DeltaPhiCrossmin = np.pi  - 2.5 * error[6]
+    DeltaPhiCrossmax = np.pi  + 2.5 * error[6]
+    
     def __init__(self, data, star_positions_times_angles, sigma, distances, **kwargs):
         # set the data
         self._data = data        
@@ -137,7 +137,7 @@ class GaiaModelPyMultiNest(Solver):
         # calculate the model
         model_sky_positions = []
 	for i in range(self._number_of_stars):
-		model_sky_positions.append( [ delta_ncomplicated(self._star_positions_times_angles[i][0], t, GW_par, distances[i]) for t in self._star_positions_times_angles[i][1] ] )
+		model_sky_positions.append( [ delta_ncomplicated(self._star_positions_times_angles[i][0], t * 1.0e-9, GW_par, distances[i]) for t in self._star_positions_times_angles[i][1] ] )
 
         logl = 0
         for i in range(self._number_of_stars):
@@ -156,7 +156,7 @@ def TestLogLikelihood(data, sky_positions, measurement_times, sigma, cube, dista
 
 
         # calculate the model
-        model_sky_positions = np.array([ [ delta_ncomplicated(sky_positions[i], t, GW_par, distances[i]) for i in range(number_of_stars)] for t in measurement_times] )
+        model_sky_positions = np.array([ [ delta_ncomplicated(sky_positions[i], t * 1.0e-9, GW_par, distances[i]) for i in range(number_of_stars)] for t in measurement_times] )
 
 
         logl = 0
@@ -167,9 +167,9 @@ def TestLogLikelihood(data, sky_positions, measurement_times, sigma, cube, dista
           
         return logl   
 
-nlive = 512  #number of live points
+nlive = 256  #number of live points
 ndim = 7 #number of parameters (n and c here)
-tol = 0.5 #stopping criteria, smaller longer but more accurate
+tol = 0.75 #stopping criteria, smaller longer but more accurate
 
 
 solution = GaiaModelPyMultiNest(changing_star_positions,
