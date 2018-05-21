@@ -34,52 +34,32 @@ month = week * 4.
 c = 2.99e8
 w = np.pi/2
 
-GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
-GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi )
+GW_parameters = namedtuple ( "GW_parameters" , "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross" )
+GW_par = GW_parameters ( logGWfrequency = np.log(2*np.pi/(3*month)) , logAmplus = -12*np.log(10) , logAmcross = -12*np.log(10) , cosTheta = 0.5 , Phi = 1.0 , DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi )
 
-star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat", 50 )
-number_of_stars = len(star_positions_times_angles)
+from test_derivative import *
+test_derivatives3(GW_par)
+exit(-1)
 
-changing_star_positions = []
-for i in range(number_of_stars):
-	changing_star_positions.append( [ delta_n(star_positions_times_angles[i][0], t * 1.0e-9, GW_par) for t in star_positions_times_angles[i][1] ] )
+star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" , 20 )
+number_of_stars = len ( star_positions_times_angles )
 
-timing_residuals = calculate_timing_residuals_simple( star_positions_times_angles, GW_par )    
-sigma_t = 1.667 * 1.0e3 / np.sqrt(1.0e9/number_of_stars) 
+timing_residuals = calculate_timing_residuals_simple ( star_positions_times_angles, GW_par )
+sigma_t = 1.667 * 1.0e3 / np.sqrt ( 1.0e9 / number_of_stars ) 
 
-Sigma3 = fisher_matrix3 (star_positions_times_angles , GW_par, sigma_t)    
-w3,v3 = LA.eigh( Sigma3 )
-invSigma3 = np.dot( v3 , np.dot( np.diag(1./w3) , np.transpose(v3) )  )
-error = np.sqrt(np.diag(invSigma3))
+Sigma3 = fisher_matrix3 ( star_positions_times_angles , GW_par, sigma_t*1.0e-9 )
+w3,v3 = LA.eigh ( Sigma3 )
+invSigma3 = np.dot ( v3 , np.dot( np.diag(1./w3) , np.transpose(v3) )  )
+error = np.sqrt ( np.diag ( invSigma3 ) )
 
 Save_Results_To_File ( invSigma3 , "{}/invSigma3.dat".format(os.environ['outputfiles_dir']) )
    
-""" 
-def plot_data(changing_star_positions):
-    for i in range (number_of_stars): 
-        p = star_positions[i] 
-        delta_p = [changing_star_positions[j][i] for j in range(len(measurement_times))] 
-        new_p = [orthographic_projection_north(p+delta_p[j]) for j in range(len(measurement_times))] 
-        plt.plot( [ new_p[j][0] for j in range(len(measurement_times))] , [new_p[j][1] for j in range(len(measurement_times))] , 'r-' )
-        plt.plot( [ new_p[j][0] for j in range(len(measurement_times))] , [new_p[j][1] for j in range(len(measurement_times))] , 'ro' )
-    theta = pl.linspace(0, 2*np.pi, 40)
-    x = np.cos(theta)
-    y = np.sin(theta)
-    plt.plot(x, y, 'k-')
-    pl.axis("equal")
-    plt.xlim(-1.05, 1.05)
-    plt.ylim(-1.05, 1.05)
-    #plt.savefig("/home/isabeau/Documents/Cours/isabeauGaiaGWproject/first.png")
-    #plt.clf()
-    plt.show()
-"""
-
 from pymultinest.solve import Solver
 from scipy.special import ndtri
 
-LN2PI = np.log(2.*np.pi)
+LN2PI = np.log ( 2.0 * np.pi )
 
-class GaiaModelPyMultiNest(Solver):
+class GaiaModelPyMultiNest ( Solver ):
 
     # define the prior parameters
     logGWfrequencymin = np.log(2*np.pi/(3*month)) - 2.5 * error[0]
@@ -97,14 +77,13 @@ class GaiaModelPyMultiNest(Solver):
     DeltaPhiCrossmin = np.pi  - 2.5 * error[6]
     DeltaPhiCrossmax = np.pi  + 2.5 * error[6]
 
-    def __init__(self, data, star_positions_times_angles, timing_residuals, sigma_t, **kwargs):
+    def __init__(self, timing_residuals , star_positions_times_angles , sigma_t , **kwargs ):
         # set the data
-	self._data = data
+	self._data = timing_residuals
         self._star_positions_times_angles = star_positions_times_angles
-        self._timing_residuals = timing_residuals
-        self._number_of_stars = len(star_positions_times_angles)
-        self._sigma_t = sigma_t      
-        self._logsigma_t = np.log(sigma_t) 
+        self._number_of_stars = len ( star_positions_times_angles )
+        self._sigma_t = sigma_t
+        self._logsigma_t = np.log ( sigma_t )
         self._sigma_tsq = sigma_t * sigma_t
         
         Solver.__init__(self, **kwargs)
@@ -136,9 +115,9 @@ class GaiaModelPyMultiNest(Solver):
         DeltaPhiPlus = DeltaPhiPlusprime*(self.DeltaPhiPlusmax-self.DeltaPhiPlusmin) + self.DeltaPhiPlusmin 
         DeltaPhiCross = DeltaPhiCrossprime*(self.DeltaPhiCrossmax-self.DeltaPhiCrossmin) + self.DeltaPhiCrossmin 
         
-        return np.array([logGWfrequency, logAmplus, logAmcross, cosTheta, Phi, DeltaPhiPlus, DeltaPhiCross])
+        return np.array ( [ logGWfrequency , logAmplus , logAmcross , cosTheta , Phi , DeltaPhiPlus , DeltaPhiCross ] )
 
-    def LogLikelihood(self, cube):
+    def LogLikelihood ( self , cube ):
         """
         The log likelihood function. This function has to be called "LogLikelihood".
         Args:
@@ -147,44 +126,49 @@ class GaiaModelPyMultiNest(Solver):
             float: the log likelihood value.
         """
        
-        GW_par = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
+        GW_par_multinest = GW_parameters ( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
+
+        modelled_timing_residuals = calculate_timing_residuals_simple ( star_positions_times_angles, GW_par_multinest )
         
         logl = 0
-        for i in range(self._number_of_stars): # loop over stars
-            for j in range(len(self._star_positions_times_angles[i][1])): # loop over measurements
-                measured_timing_residual_in_nanoseconds = self._timing_residuals[i][j]
-                modelled_timing_residual_in_nanoseconds = 1.0e9 * calculate_delta_t_simple( self._star_positions_times_angles[i][0] , 1.0e-9 * self._star_positions_times_angles[i][1][j] , self._star_positions_times_angles[i][2][j] , GW_par )
+        for i in range ( self._number_of_stars ): # loop over stars
+            for j in range ( len ( self._star_positions_times_angles[i][1] ) ): # loop over measurements
+                measured_timing_residual_in_nanoseconds = self._data[i][j]
+                modelled_timing_residual_in_nanoseconds = modelled_timing_residuals[i][j]
                 x = measured_timing_residual_in_nanoseconds - modelled_timing_residual_in_nanoseconds
-                logl = logl - (0.5 * x*x / self._sigma_tsq + LN2PI/2. + self._logsigma_t ) 
+                logl = logl - ( 0.5 * x*x / self._sigma_tsq + LN2PI/2. + self._logsigma_t ) 
                
         return logl      
        
     
 
-def TestLogLikelihood(data, star_positions_times_angles, timing_residuals, sigma_t, cube):
+def TestLogLikelihood ( timing_residuals , star_positions_times_angles , sigma_t , cube ):
 
-    GW_par = GW_parameters( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
+    GW_par_multinest = GW_parameters ( logGWfrequency = cube[0], logAmplus = cube[1], logAmcross = cube[2], cosTheta = cube[3], Phi = cube[4], DeltaPhiPlus = cube[5] , DeltaPhiCross = cube[6] )
 
-    number_of_stars = len(star_positions_times_angles)
+    modelled_timing_residuals = calculate_timing_residuals_simple ( star_positions_times_angles, GW_par_multinest )
+    
+    number_of_stars = len ( star_positions_times_angles )
     sigma_tsq = sigma_t * sigma_t
-    logsigma_t = np.log(sigma_t)
+    logsigma_t = np.log ( sigma_t )
+
     logl = 0
-    for i in range(number_of_stars): # loop over stars
-        for j in range(len(star_positions_times_angles[i][1])): # loop over measurements
-            measured_timing_residual_in_nanoseconds = timing_residuals[i][j]
-            modelled_timing_residual_in_nanoseconds = 1.0e9 * calculate_delta_t( star_positions_times_angles[i][0] , 1.0e-9 * star_positions_times_angles[i][1][j] , star_positions_times_angles[i][2][j] , GW_par )
+    for i in range ( number_of_stars ): # loop over stars
+        for j in range ( len ( star_positions_times_angles[i][1] ) ): # loop over measurements
+            measured_timing_residual_in_nanoseconds = self._data[i][j]
+            modelled_timing_residual_in_nanoseconds = modelled_timing_residuals[i][j]
             x = measured_timing_residual_in_nanoseconds - modelled_timing_residual_in_nanoseconds
             logl = logl - (0.5 * x*x / sigma_tsq + LN2PI/2. + logsigma_t ) 
                
-    return logl          
+    return logl
+
 
 nlive = 256 #number of live points
 ndim = 7 #number of parameters
 tol = 0.75 #stopping criteria, smaller longer but more accurate
 
-solution = GaiaModelPyMultiNest(changing_star_positions,
+solution = GaiaModelPyMultiNest(timing_residuals,
                                 star_positions_times_angles,
-                                timing_residuals,
                                 sigma_t,
                                 n_dims=ndim,
                                 n_live_points=nlive,
