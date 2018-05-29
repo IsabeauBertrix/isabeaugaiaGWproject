@@ -35,17 +35,17 @@ day = 24 * 60 * 60.
 year = 3660. * 24. * 365.25
 week = 3660. * 24. * 7.
 month = week * 4.
+microarcsecond = np.pi/(180*3600*1e6)
   
 GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
 GW_par = gen_rand_GW ()   
 #GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi ) 
-print(GW_par)
-    
 
 
-star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat", 1 )
-sigma = 2.9e-13 
-sigma_t = 1.0e-9 
+star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat", 10 )
+number_of_stars = len(star_positions_times_angles)
+sigma = 100 * microarcsecond / np.sqrt(1.0e9/number_of_stars)
+sigma_t = 1.667 * 1.0e3 / np.sqrt ( 1.0e9 / number_of_stars )
 distances = np.random.normal(3.086e16 , 1.0e13, len(star_positions_times_angles))
 
 
@@ -53,27 +53,56 @@ distances = np.random.normal(3.086e16 , 1.0e13, len(star_positions_times_angles)
 def WapperFunction_FisherMatrix ( args ):
     
     sigma = args[0]
-
+    sigma_t = args[1]
+    distances = args[2]
     GW_par = gen_rand_GW ()
     
-    SIGMA = fisher_matrix1 (star_positions_times_angles , gen_rand_GW() , sigma )
+    SIGMA1 = fisher_matrix1 (star_positions_times_angles , gen_rand_GW() , sigma )
+    SIGMA2 = fisher_matrix2 (star_positions_times_angles , gen_rand_GW() , sigma , distances )
+    SIGMA3 = fisher_matrix3 (star_positions_times_angles , gen_rand_GW() , sigma_t )
+    SIGMA4 = fisher_matrix4 (star_positions_times_angles , gen_rand_GW() , sigma_t , distances )
+    return [ GW_par , SIGMA1 , SIGMA2 , SIGMA3, SIGMA4 ]
     
-    return [ GW_par , SIGMA ]
-    
-def Save_Results_To_File ( results , filename ):
-    with open(filename, 'w') as f:
-        f.write(str(results)) 
+
+def Save_Results_To_File ( results , filename1, filename2, filename3, filename4 ):
+    with open(filename1, 'w') as f:
+        for r in results:
+            f.write( str(r[0]) )
+            f.write( '\n' )
+            f.write( str(r[1]))
+            f.write( '\n' )
+    with open(filename2, 'w') as f:
+        for r in results:
+            f.write( str(r[0]) )
+            f.write( '\n' )
+            f.write( str(r[2]))
+            f.write( '\n' )
+    with open(filename3, 'w') as f:
+        for r in results:
+            f.write( str(r[0]) )
+            f.write( '\n' )
+            f.write( str(r[3]))
+            f.write( '\n' )
+    with open(filename4, 'w') as f:
+        for r in results:
+            f.write( str(r[0]) )
+            f.write( '\n' )
+            f.write( str(r[4]))
+            f.write( '\n' )
     return 1
+		
+def Load_results_to_File (filename):
+    return [logOmegaVals, logAplusVals, logAcrossVals, cosThetaVals, PhiVals, DeltaPhiPlusVals, DeltaPhiCrossVals, DeltalogOmega, DeltalogAplus, DeltaLogAcross, DeltacosTheta, DeltaPhi, DeltaDeltaPhiPlus, DeltaDeltaPhiCross]
 
 from multiprocessing import Pool
 
-num = 6
+num = 5
 n_cpus = 2
 
-argument_list = [ [ sigma ] for i in range(num) ]
+argument_list = [ [ sigma, sigma_t, distances ] for i in range(num) ]
 p = Pool ( n_cpus )
 results = p.map ( WapperFunction_FisherMatrix , argument_list )
-Save_Results_To_File ( results , "test.dat" )
+Save_Results_To_File ( results , "test1.dat", "test2.dat", "test3.dat", "test4.dat" )
 
     
 """
@@ -98,7 +127,7 @@ oneDhist_automatic_xrange(matrix[:,5] )
 plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/fisher_matrix/deltaphiplus.png")
 oneDhist_automatic_xrange(matrix[:,6] )
 plt.savefig("/home/isabeau/Documents/Cours/isabeaugaiaGWproject/fisher_matrix/deltaphicross.png*")
-"""         
+         
 
 print("Welcome to Skynet industry")
 print("1=angle")
@@ -166,3 +195,4 @@ elif reponse == '66':
 else:
     print ("Good aswer.")
     print("Thank you for your participation, we hope you will have a great life. Please enjoy your day")
+"""
