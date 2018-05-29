@@ -27,7 +27,7 @@ def delta_n ( n , t, GW_par ):
 
 def delta_ncomplicated ( n , time , GW_par, distance ) :
 
-    wWl = -2 * np.pi * distance / ( c / np.power(10 , GW_par.logGWfrequency))
+    wWl = -2 * np.pi * distance * np.exp( GW_par.logGWfrequency ) / c
     epsilon_theta = np.array([GW_par.cosTheta*np.cos(GW_par.Phi), GW_par.cosTheta*np.sin(GW_par.Phi) , -np.sqrt(1-np.power(GW_par.cosTheta,2))])
     epsilon_phi = np.array([-np.sin(GW_par.Phi), np.cos(GW_par.Phi), 0])
 

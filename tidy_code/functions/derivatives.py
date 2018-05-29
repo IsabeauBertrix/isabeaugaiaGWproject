@@ -82,7 +82,7 @@ def derivative1( n , t , GW_par, param_index, scale ):
 
 def derivative2(n , t , GW_par, param_index, scale, distance ):
     deltas = [np.power( 10 , -10.5), np.power(10, -4.75) ,np.power(10, -4.75), np.power(10 , -5.0), np.power(10 , -5.25), np.power( 10 , -4.99), np.power(10 , -4.99)]
-    
+
     if param_index == 0:
         GW = GW_par._asdict()
         GW['logGWfrequency'] = GW['logGWfrequency'] + deltas[param_index] * scale
@@ -158,7 +158,8 @@ def derivative2(n , t , GW_par, param_index, scale, distance ):
         return(-1)
         
 def derivative3( n , t , psi, GW_par, param_index, scale ):
-    deltas = [np.power( 10 , -10.5), np.power(10, -5.75) ,np.power(10, -5.75), np.power(10 , -6.25), np.power(10 , -6.25), np.power( 10 , -2.5), np.power(10 , -2.5)]
+    deltas = [np.power( 10 , -10.5), np.power(10, -4.75) ,np.power(10, -4.75), np.power(10 , -5.25), np.power(10 , -5.25), np.power( 10 , -4.1), np.power(10 , -4.1)]
+
     
     if param_index == 0:
         GW = GW_par._asdict()
@@ -236,7 +237,7 @@ def derivative3( n , t , psi, GW_par, param_index, scale ):
         
 
 def derivative4( n , t , psi, GW_par, param_index, scale, distance ):
-    deltas = [np.power( 10 , -10.5), np.power(10, -5.75) ,np.power(10, -5.75), np.power(10 , -6.25), np.power(10 , -6.25), np.power( 10 , -2.5), np.power(10 , -2.5)]
+    deltas = [np.power( 10 , -10.5), np.power(10, -4.75) ,np.power(10, -4.75), np.power(10 , -5.25), np.power(10 , -5.25), np.power( 10 , -4.1), np.power(10 , -4.1)]
     
     if param_index == 0:
         GW = GW_par._asdict()
