@@ -42,7 +42,7 @@ GW_par = gen_rand_GW ()
 #GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi ) 
 
 
-star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
+star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat")
 number_of_stars = len(star_positions_times_angles)
 sigma = 100 * microarcsecond / np.sqrt(1.0e9/number_of_stars)
 sigma_t = 1.667 * 1.0e3 / np.sqrt ( 1.0e9 / number_of_stars )
@@ -55,12 +55,14 @@ def WapperFunction_FisherMatrix ( args ):
     sigma = args[0]
     sigma_t = args[1]
     distances = args[2]
+    d = args[3]
+    
     GW_par = gen_rand_GW ()
     
-    SIGMA1 = fisher_matrix1 (star_positions_times_angles , gen_rand_GW() , sigma )
-    SIGMA2 = fisher_matrix2 (star_positions_times_angles , gen_rand_GW() , sigma , distances )
-    SIGMA3 = fisher_matrix3 (star_positions_times_angles , gen_rand_GW() , sigma_t )
-    SIGMA4 = fisher_matrix4 (star_positions_times_angles , gen_rand_GW() , sigma_t , distances )
+    SIGMA1 = fisher_matrix1 (d , gen_rand_GW() , sigma )
+    SIGMA2 = fisher_matrix2 (d , gen_rand_GW() , sigma , distances )
+    SIGMA3 = fisher_matrix3 (d , gen_rand_GW() , sigma_t )
+    SIGMA4 = fisher_matrix4 (d , gen_rand_GW() , sigma_t , distances )
     return [ GW_par , SIGMA1 , SIGMA2 , SIGMA3, SIGMA4 ]
     
 
@@ -94,13 +96,13 @@ def Save_Results_To_File ( results , filename1, filename2, filename3, filename4 
 def Load_results_to_File (filename):
     return [logOmegaVals, logAplusVals, logAcrossVals, cosThetaVals, PhiVals, DeltaPhiPlusVals, DeltaPhiCrossVals, DeltalogOmega, DeltalogAplus, DeltaLogAcross, DeltacosTheta, DeltaPhi, DeltaDeltaPhiPlus, DeltaDeltaPhiCross]
 
+num = 48
+num_cpus = 24
+
 from multiprocessing import Pool
+p = Pool( num_cpus )
 
-num = 100
-n_cpus = 48
-
-argument_list = [ [ sigma, sigma_t, distances ] for i in range(num) ]
-p = Pool ( n_cpus )
+argument_list = [ [ sigma, sigma_t, distances, star_positions_times_angles ] for i in range(num) ]
 results = p.map ( WapperFunction_FisherMatrix , argument_list )
 Save_Results_To_File ( results , "test1.dat", "test2.dat", "test3.dat", "test4.dat" )
 
