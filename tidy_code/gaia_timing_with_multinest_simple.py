@@ -158,9 +158,9 @@ def TestLogLikelihood ( timing_residuals , star_positions_times_angles , sigma_t
     return logl
 
 
-nlive = 256 #number of live points
+nlive = 512 #number of live points
 ndim = 7 #number of parameters
-tol = 0.75 #stopping criteria, smaller longer but more accurate
+tol = 0.5 #stopping criteria, smaller longer but more accurate
 
 solution = GaiaModelPyMultiNest(timing_residuals,
                                 star_positions_times_angles,

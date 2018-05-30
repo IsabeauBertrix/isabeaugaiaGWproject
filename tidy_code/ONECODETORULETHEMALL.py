@@ -42,7 +42,7 @@ GW_par = gen_rand_GW ()
 #GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi ) 
 
 
-star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat", 10 )
+star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
 number_of_stars = len(star_positions_times_angles)
 sigma = 100 * microarcsecond / np.sqrt(1.0e9/number_of_stars)
 sigma_t = 1.667 * 1.0e3 / np.sqrt ( 1.0e9 / number_of_stars )
@@ -96,8 +96,8 @@ def Load_results_to_File (filename):
 
 from multiprocessing import Pool
 
-num = 5
-n_cpus = 2
+num = 100
+n_cpus = 48
 
 argument_list = [ [ sigma, sigma_t, distances ] for i in range(num) ]
 p = Pool ( n_cpus )

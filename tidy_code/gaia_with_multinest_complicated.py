@@ -167,9 +167,9 @@ def TestLogLikelihood(data, sky_positions, measurement_times, sigma, cube, dista
           
         return logl   
 
-nlive = 256  #number of live points
+nlive = 512  #number of live points
 ndim = 7 #number of parameters (n and c here)
-tol = 0.75 #stopping criteria, smaller longer but more accurate
+tol = 0.5 #stopping criteria, smaller longer but more accurate
 
 
 solution = GaiaModelPyMultiNest(changing_star_positions,
