@@ -59,10 +59,10 @@ def WapperFunction_FisherMatrix ( args ):
     
     GW_par = args[4]
     
-    SIGMA1 = fisher_matrix1 (d , gen_rand_GW() , sigma )
-    SIGMA2 = fisher_matrix2 (d , gen_rand_GW() , sigma , distances )
-    SIGMA3 = fisher_matrix3 (d , gen_rand_GW() , sigma_t )
-    SIGMA4 = fisher_matrix4 (d , gen_rand_GW() , sigma_t , distances )
+    SIGMA1 = fisher_matrix1 (d , GW_par , sigma )
+    SIGMA2 = fisher_matrix2 (d , GW_par , sigma , distances )
+    SIGMA3 = fisher_matrix3 (d , GW_par , sigma_t )
+    SIGMA4 = fisher_matrix4 (d , GW_par , sigma_t , distances )
     return [ GW_par , SIGMA1 , SIGMA2 , SIGMA3, SIGMA4 ]
     
 
