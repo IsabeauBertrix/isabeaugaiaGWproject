@@ -57,7 +57,7 @@ def WapperFunction_FisherMatrix ( args ):
     distances = args[2]
     d = args[3]
     
-    GW_par = gen_rand_GW ()
+    GW_par = args[4]
     
     SIGMA1 = fisher_matrix1 (d , gen_rand_GW() , sigma )
     SIGMA2 = fisher_matrix2 (d , gen_rand_GW() , sigma , distances )
@@ -102,7 +102,7 @@ num_cpus = 24
 from multiprocessing import Pool
 p = Pool( num_cpus )
 
-argument_list = [ [ sigma, sigma_t, distances, star_positions_times_angles ] for i in range(num) ]
+argument_list = [ [ sigma, sigma_t, distances, star_positions_times_angles, gen_rand_GW () ] for i in range(num) ]
 results = p.map ( WapperFunction_FisherMatrix , argument_list )
 Save_Results_To_File ( results , "test1.dat", "test2.dat", "test3.dat", "test4.dat" )
 
