@@ -16,31 +16,20 @@ GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross
 
 def matrix_derivative1(n , t , GW_par):
     v1 = [derivative1( n , t , GW_par, param_index, 1.0 ) for param_index in range(7)]
-    u1 = np.zeros((7 , 7))
-    for i in range ( 7 ):
-        for j in range ( 7 ):
-            u1[i][j] = np.dot( v1[i] , v1[j] )
-            
-    return u1
-      
-    
+    v1 = np.array([np.dot(v,v) for v in v1])
+    return np.outer(v1,v1)
+
 def matrix_derivative2(n , t , GW_par, distance):
     v2 = [derivative2( n , t , GW_par, param_index, 1.0, distance ) for param_index in range(7)]
-    u2 = np.zeros((7 , 7))
-    for i in range ( 7 ):
-        for j in range ( 7 ):
-            u2[i][j] = np.dot( v2[i] , v2[j] )
-            
-    return u2
+    v2 = np.array([np.dot(v,v) for v in v2])
+    return np.outer(v2,v2)
     
 def matrix_derivative3(n , t , psi, GW_par ):
-    v3 = [derivative3( n , t , np.pi/3. , GW_par, param_index, 1.0 ) for param_index in range(7)]
+    v3 = np.array([derivative3( n , t , np.pi/3. , GW_par, param_index, 1.0 ) for param_index in range(7)])
     return np.outer( v3 , v3 )
-      
-    
 
 def matrix_derivative4(n , t , psi, GW_par, distance):
-    v4 = [derivative4( n , t , np.pi/3. , GW_par, param_index, 1.0, distance ) for param_index in range(7)]
+    v4 = np.array([derivative4( n , t , np.pi/3. , GW_par, param_index, 1.0, distance ) for param_index in range(7)])
     return np.outer( v4 , v4 )
       
     
