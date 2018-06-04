@@ -96,7 +96,7 @@ def Save_Results_To_File ( results , filename1, filename2, filename3, filename4 
 def Load_results_to_File (filename):
     return [logOmegaVals, logAplusVals, logAcrossVals, cosThetaVals, PhiVals, DeltaPhiPlusVals, DeltaPhiCrossVals, DeltalogOmega, DeltalogAplus, DeltaLogAcross, DeltacosTheta, DeltaPhi, DeltaDeltaPhiPlus, DeltaDeltaPhiCross]
 
-num = 48
+num = 500
 num_cpus = 24
 
 from multiprocessing import Pool
