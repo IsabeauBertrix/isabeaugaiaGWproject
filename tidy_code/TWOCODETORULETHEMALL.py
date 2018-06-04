@@ -42,7 +42,7 @@ GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross
 GW_par = gen_rand_GW ()   
 #GW_par = GW_parameters( logGWfrequency = np.log(2*np.pi/(3*month)), logAmplus = -12*np.log(10), logAmcross = -12*np.log(10), cosTheta = 0.5, Phi = 1.0, DeltaPhiPlus = 1*np.pi , DeltaPhiCross = np.pi ) 
 
-star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat" )
+star_positions_times_angles = LoadData( "MockAstrometricTimingData/gwastrometry-gaiasimu-1000-randomSphere-v2.dat")
 
 number_of_stars = len(star_positions_times_angles)
 sigma = 100 * microarcsecond / np.sqrt ( 1.0e9 / number_of_stars )
@@ -117,7 +117,7 @@ p = Pool( num_cpus )
 
 argument_list = [ [ sigma, sigma_t, distances, star_positions_times_angles, gen_rand_GW () ] for i in range(num) ]
 results = p.map ( WapperFunction_FisherMatrix , argument_list )
-Save_Results_To_File ( results , "test1_1.dat", "test2_1.dat", "test3_1.dat", "test4_1.dat" )
+Save_Results_To_File ( results , "test1_2.dat", "test2_2.dat", "test3_2.dat", "test4_2.dat" )
 
     
 """
