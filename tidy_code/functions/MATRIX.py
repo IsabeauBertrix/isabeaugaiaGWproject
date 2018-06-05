@@ -16,13 +16,13 @@ GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross
 
 def matrix_derivative1(n , t , GW_par):
     v1 = [derivative1( n , t , GW_par, param_index, 1.0 ) for param_index in range(7)]
-    v1 = np.array([np.dot(v,v) for v in v1])
-    return np.outer(v1,v1)
+    matrix = np.array ( [ [ np.dot(v1[i],v1[j]) for i in range(7) ] for j in range(7) ] )
+    return matrix
 
 def matrix_derivative2(n , t , GW_par, distance):
     v2 = [derivative2( n , t , GW_par, param_index, 1.0, distance ) for param_index in range(7)]
-    v2 = np.array([np.dot(v,v) for v in v2])
-    return np.outer(v2,v2)
+    matrix = np.array ( [ [ np.dot(v2[i],v2[j]) for i in range(7) ] for j in range(7) ] )
+    return matrix
     
 def matrix_derivative3(n , t , psi, GW_par ):
     v3 = np.array([derivative3( n , t , np.pi/3. , GW_par, param_index, 1.0 ) for param_index in range(7)])
