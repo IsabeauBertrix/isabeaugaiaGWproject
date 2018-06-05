@@ -28,6 +28,7 @@ def delta_n ( n , t, GW_par ):
 def delta_ncomplicated ( n , time , GW_par, distance ) :
 
     wWl = -2 * np.pi * distance * np.exp( GW_par.logGWfrequency ) / c
+
     epsilon_theta = np.array([GW_par.cosTheta*np.cos(GW_par.Phi), GW_par.cosTheta*np.sin(GW_par.Phi) , -np.sqrt(1-np.power(GW_par.cosTheta,2))])
     epsilon_phi = np.array([-np.sin(GW_par.Phi), np.cos(GW_par.Phi), 0])
 
@@ -36,20 +37,19 @@ def delta_ncomplicated ( n , time , GW_par, distance ) :
     epsilon_plus= np.outer(epsilon_theta, epsilon_theta) - np.outer(epsilon_phi, epsilon_phi)
     epsilon_cross= np.outer(epsilon_theta, epsilon_phi) + np.outer(epsilon_phi,epsilon_theta)
 
-    H = (np.exp(GW_par.logAmplus)*np.exp(1j*GW_par.DeltaPhiPlus)*epsilon_plus + np.exp(GW_par.logAmcross)*np.exp(1j*GW_par.DeltaPhiCross)*epsilon_cross )
+    H = ( np.exp( GW_par.logAmplus ) * np.exp( 1j * GW_par.DeltaPhiPlus ) * epsilon_plus + np.exp( GW_par.logAmcross ) * np.exp( 1j * GW_par.DeltaPhiCross ) * epsilon_cross )
 
-    Bigterm = (1 - np.exp(-1j*wWl*(1-np.dot(q,n))))
+    Bigterm = ( 1. - np.exp( -1j * wWl * ( 1. - np.dot( q , n ) ) ) )
 
-    Hterm = ( np.dot(n,np.dot(H,n)) ) / ( 2 * (1-np.dot(q,n)) )
+    Hterm = ( np.dot( n , np.dot( H , n ) ) ) / ( 2. * ( 1. - np.dot( q , n ) ) )
 
-    denom = wWl * (1-np.dot(q,n))
+    denom = wWl * ( 1. - np.dot( q , n ) )
     
-    first = (1+(1j*(2-np.dot(q,n))/(denom)) * Bigterm) * n
+    first = ( 1. + ( 1j * ( 2. - np.dot( q , n ) ) / ( denom ) ) * Bigterm ) * n
     
-    second = ( 1 + 1j * ( Bigterm / denom ) ) * q 
+    second = ( 1. + 1j * ( Bigterm / denom ) ) * q 
 
-    third = (0.5 + 1j * (Bigterm / denom ) ) * np.dot(H , n) 
+    third = ( 0.5 + 1j * ( Bigterm / denom ) ) * np.dot( H , n )  
     
-    return np.real(((first + second)*Hterm -third)*np.exp(-1j*np.exp(GW_par.logGWfrequency)*time)) 
-
+    return np.real( ( ( first - second ) * Hterm - third ) * np.exp( -1j * np.exp( GW_par.logGWfrequency ) * time ) ) 
   

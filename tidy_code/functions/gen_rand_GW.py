@@ -5,8 +5,8 @@ from collections import namedtuple
 GW_parameters = namedtuple("GW_parameters", "logGWfrequency logAmplus logAmcross cosTheta Phi DeltaPhiPlus DeltaPhiCross")
 def gen_rand_GW():
     
-    x = np.random.uniform( -8. , -7. )
-    Omega = np.power( 10. , x ) 
+    x = np.random.uniform( -9. , -7. )
+    Omega = 2 * np.pi * np.power( 10. , x ) 
 
     log10Amplus = np.random.uniform( -15, -10 )
     log10Amcross = np.random.uniform( -15, -10 )
